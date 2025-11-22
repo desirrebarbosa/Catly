@@ -1,60 +1,45 @@
+const jwt = require('jsonwebtoken');
 const { prisma } = require('../config/database');
-const { verifyToken } = require('../utils/jwt');
 
 const authenticate = async (req, res, next) => {
-  try {
-    // get token from header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
-        success: false,
-        error: 'Access denied. No token provided.' 
+  let token;
+
+  // check if header exists
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      // get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+
+      // get user from the token
+      req.user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { 
+          id: true, 
+          email: true, 
+          name: true, 
+          // role: true 
+        }
       });
-    }
 
-    // extract token
-    const token = authHeader.split(' ')[1];
-
-    // verify token
-    const decoded = verifyToken(token);
-    
-    if (!decoded) {
-      return res.status(401).json({ 
-        success: false,
-        error: 'Invalid or expired token.' 
-      });
-    }
-
-    // get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true,
-        phone: true,
-        profilePhoto: true,
-        createdAt: true
+      if (!req.user) {
+        return res.status(401).json({ success: false, error: 'Not authorized' });
       }
-    });
 
-    if (!user) {
-      return res.status(401).json({ 
-        success: false,
-        error: 'User not found.' 
-      });
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({ success: false, error: 'Not authorized' });
     }
+  }
 
-    // attach user to request object
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    return res.status(500).json({ 
-      success: false,
-      error: 'Authentication error.' 
-    });
+  if (!token) {
+    res.status(401).json({ success: false, error: 'Not authorized, no token' });
   }
 };
 

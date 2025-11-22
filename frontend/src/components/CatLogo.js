@@ -11,7 +11,7 @@ export const CatLogo = ({ size = 150, color = 'pink' }) => {
       source={logoSource}
       style={{ 
         width: size, 
-        height: size, // Keep it square to let resizeMode handle the aspect ratio
+        height: size,
       }}
       resizeMode="contain"
     />

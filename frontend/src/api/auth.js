@@ -5,7 +5,7 @@ export const authAPI = {
   signUp: async (email, password, name) => {
     try {
       const fullUrl = `${API_URL}/auth/signup`;
-      console.log('Attempting to fetch:', fullUrl); // 👈 Add this line!
+      console.log('Attempting to fetch:', fullUrl); 
 
       const response = await fetch(fullUrl, {
         method: 'POST',

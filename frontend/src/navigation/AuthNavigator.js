@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { WelcomeScreen } from '../screens/WelcomeScreen';
-// 👇 FIX 1: Import the correct component name "Welcome2Screen"
 import { Welcome2Screen } from '../screens/WelcomeScreen2'; 
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignupScreen } from '../screens/SignupScreen';
@@ -19,7 +18,6 @@ export const AuthNavigator = () => {
       }}
     >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      {/* 👇 FIX 2: Use the correct component variable here */}
       <Stack.Screen name="Welcome2" component={Welcome2Screen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />

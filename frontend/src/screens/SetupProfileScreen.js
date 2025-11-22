@@ -28,8 +28,6 @@ export const SetupProfileScreen = ({ navigation }) => {
         
         <View style={styles.card}>
           <Text style={styles.title}>Set Up Your Account</Text>
-
-          {/* Avatar Placeholder */}
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarIcon}>👤</Text>
@@ -38,8 +36,6 @@ export const SetupProfileScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-
-          {/* Form */}
           <View style={styles.form}>
             <TextInput
               style={styles.input}
@@ -79,7 +75,7 @@ export const SetupProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary, // Pink background
+    backgroundColor: COLORS.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -98,11 +94,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold', // Darker bolder font like reference
-    color: '#2E3E5C', // Dark grayish blue commonly used in these designs
+    fontWeight: 'bold', 
+    color: '#2E3E5C', 
     textAlign: 'center',
     marginBottom: 25,
-    fontStyle: 'italic', // Reference looks slightly stylized
+    fontStyle: 'italic',
   },
   avatarContainer: {
     alignItems: 'center',
@@ -122,7 +118,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: COLORS.primary, // Pink plus button
+    backgroundColor: COLORS.primary, 
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -148,7 +144,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: '#333333', // Dark grey/black button like reference
+    backgroundColor: '#333333', 
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
