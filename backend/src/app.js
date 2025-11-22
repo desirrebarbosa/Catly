@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const errorHandler = require('./middleware/error.middleware');
 
 // import routes
 const authRoutes = require('./routes/auth.routes');
@@ -9,12 +10,13 @@ const authRoutes = require('./routes/auth.routes');
 const app = express();
 
 // middleware
-app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Parse JSON bodies
+app.use(helmet()); // security headers
+app.use(cors()); // enable CORS
+app.use(express.json()); // parse JSON bodies
 app.use(express.urlencoded({ extended: true }));
 
 // routes
+app.use('/api/auth', authRoutes);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -23,9 +25,6 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// API routes
-app.use('/api/auth', authRoutes);
 
 // error handling
 // 404 handler
@@ -36,14 +35,5 @@ app.use((req, res) => {
   });
 });
 
-// global error handler
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
-    success: false,
-    error: 'Internal server error.',
-    ...(process.env.NODE_ENV === 'development' && { details: err.message })
-  });
-});
-
+app.use(errorHandler);
 module.exports = app;

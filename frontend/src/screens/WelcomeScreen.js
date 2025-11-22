@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: width * 0.6, // 60% of screen width
+    width: width * 0.6, 
     height: width * 0.6,
   },
 });

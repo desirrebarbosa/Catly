@@ -3,7 +3,7 @@ import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-nativ
 import { COLORS } from '../constants/colors';
 
 export const Input = ({
-  label, // Optional: pass this if you want a label above the box
+  label,
   placeholder,
   value,
   onChangeText,
@@ -12,7 +12,7 @@ export const Input = ({
   keyboardType = 'default',
   autoCapitalize = 'none',
   multiline = false,
-  style, // Allow overriding styles
+  style,
 }) => {
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
@@ -43,7 +43,6 @@ export const Input = ({
         
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setIsSecure(!isSecure)} style={styles.eyeIconBtn}>
-            {/* Simple text icon, or replace with an Icon component if you have one */}
             <Text style={styles.eyeIcon}>{isSecure ? '👁️' : '👁️‍🗨️'}</Text>
           </TouchableOpacity>
         )}
@@ -71,13 +70,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12, // Slightly more rounded
-    backgroundColor: COLORS.inputBg, // Light gray background
+    borderRadius: 12, 
+    backgroundColor: COLORS.inputBg, 
     paddingHorizontal: 16,
   },
   focusedInput: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.white, // Highlight white when typing
+    backgroundColor: COLORS.white,
   },
   errorInput: {
     borderColor: COLORS.error,

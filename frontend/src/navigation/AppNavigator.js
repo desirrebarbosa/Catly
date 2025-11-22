@@ -6,7 +6,7 @@ import { COLORS } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 
-// Home Screen (Simplified)
+// placeholder homescreen
 const HomeScreen = () => {
   const { user } = useAuth();
   
@@ -19,7 +19,7 @@ const HomeScreen = () => {
   );
 };
 
-// 👇 NEW: Settings Screen with Logout Button
+// placeholder setting w logout
 const SettingsScreen = () => {
   const { logOut } = useAuth();
 
@@ -39,7 +39,7 @@ const SettingsScreen = () => {
   );
 };
 
-// Placeholder for other tabs
+// placeholder for other tabs
 const PlaceholderScreen = ({ route }) => (
   <View style={styles.screen}>
     <Text style={styles.screenTitle}>{route.name}</Text>

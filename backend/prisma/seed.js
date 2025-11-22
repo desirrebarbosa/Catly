@@ -1,4 +1,3 @@
-// backend/prisma/seed.js
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -7,11 +6,11 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seed...');
 
-  // 1. Create a standard password for everyone: "Catly123"
+  // create a standard password for everyone: "Catly123"
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash('Catly123', salt);
 
-  // 2. Define dummy users
+  // define dummy users
   const users = [
     {
       email: 'admin@catly.com',
@@ -46,7 +45,7 @@ async function main() {
     },
   ];
 
-  // 3. Loop through and create them
+  // loop through and create them
   for (const user of users) {
     const existingUser = await prisma.user.findUnique({
       where: { email: user.email },
@@ -56,9 +55,9 @@ async function main() {
       await prisma.user.create({
         data: user,
       });
-      console.log(`✅ Created user: ${user.email}`);
+      console.log(`reated user: ${user.email}`);
     } else {
-      console.log(`⚠️ User already exists: ${user.email}`);
+      console.log(`User already exists: ${user.email}`);
     }
   }
 

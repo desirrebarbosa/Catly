@@ -4,7 +4,7 @@ import {
   TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, 
   Platform, ScrollView, Dimensions, StatusBar 
 } from 'react-native';
-// 👇 Import the hook instead of the component
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; 
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/colors';

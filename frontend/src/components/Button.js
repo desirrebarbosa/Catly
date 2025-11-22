@@ -57,11 +57,10 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 25, // Pill shape
+    borderRadius: 25, // pill shape
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 54,
-    // Shadows for that "pop" effect
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -78,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   darkBtn: {
-    backgroundColor: COLORS.black, // Matches the "Setup Profile" dark button
+    backgroundColor: COLORS.black, 
   },
   disabledBtn: {
     opacity: 0.6,
