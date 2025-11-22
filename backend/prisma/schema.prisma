@@ -1,149 +1,22 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" 
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  passwordHash      String
-  name              String?
-  phone             String?
-  profilePhoto      String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  cats              Cat[]
-  schedules         Schedule[]
-  contacts          Contact[]
-  
-  @@map("users")
-}
-
-model Cat {
-  id                String    @id @default(uuid())
-  userId            String
-  name              String
-  breed             String?
-  gender            String?
-  birthdate         DateTime?
-  color             String?
-  weight            Float?
-  photo             String?
-  notes             String?
-  isArchived        Boolean   @default(false)
-  lastUpdated       DateTime  @default(now())
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  healthEvents      HealthEvent[]
-  mother            Cat?      @relation("CatLineage", fields: [motherId], references: [id])
-  father            Cat?      @relation("CatLineage", fields: [fatherId], references: [id])
-  motherId          String?
-  fatherId          String?
-  offspring         Cat[]     @relation("CatLineage")
-  litters           Litter[]
-  adoptionRecords   AdoptionRecord[]
-  
-  @@map("cats")
-  @@index([userId])
-}
-
-model HealthEvent {
-  id                String    @id @default(uuid())
-  catId             String
-  eventType         String
-  title             String
-  date              DateTime
-  notes             String?
-  vetContactId      String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  cat               Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
-  vetContact        Contact?  @relation(fields: [vetContactId], references: [id])
-  
-  @@map("health_events")
-  @@index([catId])
-}
-
-model Litter {
-  id                String    @id @default(uuid())
-  catId             String
-  date              DateTime
-  kittenCount       Int
-  otherParentId     String?
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  cat               Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
-  
-  @@map("litters")
-  @@index([catId])
-}
-
-model AdoptionRecord {
-  id                String    @id @default(uuid())
-  catId             String
-  eventType         String
-  date              DateTime
-  contactId         String?
-  fee               Float?
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  cat               Cat       @relation(fields: [catId], references: [id], onDelete: Cascade)
-  contact           Contact?  @relation(fields: [contactId], references: [id])
-  
-  @@map("adoption_records")
-  @@index([catId])
-}
-
-model Schedule {
-  id                String    @id @default(uuid())
-  userId            String
-  taskType          String
-  taskName          String
-  catIds            String[]
-  time              String
-  recurrence        String
-  startDate         DateTime
-  endDate           DateTime?
-  notificationsEnabled Boolean @default(true)
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("schedules")
-  @@index([userId])
-}
-
-model Contact {
-  id                String    @id @default(uuid())
-  userId            String
-  name              String
-  role              String
-  phone             String?
-  email             String?
-  address           String?
-  notes             String?
-  photo             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  healthEvents      HealthEvent[]
-  adoptionRecords   AdoptionRecord[]
-  
-  @@map("contacts")
-  @@index([userId])
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  phone        String?
+  about        String?  
+  profilePhoto String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
