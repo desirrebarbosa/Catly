@@ -183,25 +183,27 @@ const getProfile = async (req, res) => {
 // update profile PUT/api/auth/profile
 const updateProfile = async (req, res) => {
   try {
-    // validate request
     const validationError = handleValidationErrors(req, res);
     if (validationError) return validationError;
 
-    const { name, phone, profilePhoto } = req.body;
+    // 👇 FIX 1: Add 'about' to the extracted data
+    const { name, phone, profilePhoto, about } = req.body;
 
-    // update user
     const user = await prisma.user.update({
       where: { id: req.user.id },
       data: {
         ...(name !== undefined && { name }),
         ...(phone !== undefined && { phone }),
-        ...(profilePhoto !== undefined && { profilePhoto })
+        ...(profilePhoto !== undefined && { profilePhoto }),
+        // 👇 FIX 2: Save the 'about' field to the database
+        ...(about !== undefined && { about }) 
       },
       select: {
         id: true,
         email: true,
         name: true,
         phone: true,
+        about: true, 
         profilePhoto: true,
         updatedAt: true
       }
@@ -210,9 +212,7 @@ const updateProfile = async (req, res) => {
     res.json({
       success: true,
       message: 'Profile updated successfully.',
-      data: {
-        user
-      }
+      data: { user }
     });
 
   } catch (error) {

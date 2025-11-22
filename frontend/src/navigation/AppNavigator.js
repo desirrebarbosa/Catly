@@ -6,23 +6,40 @@ import { COLORS } from '../constants/colors';
 
 const Tab = createBottomTabNavigator();
 
-// Placeholder Home Screen
+// Home Screen (Simplified)
 const HomeScreen = () => {
-  const { logOut, user } = useAuth();
+  const { user } = useAuth();
   
   return (
     <View style={styles.screen}>
       <Text style={styles.screenTitle}>Welcome to Catly!</Text>
-      <Text style={styles.screenText}>You're logged in as:</Text>
+      <Text style={styles.screenText}>You are logged in as:</Text>
       <Text style={styles.email}>{user?.email}</Text>
-      <TouchableOpacity style={styles.logoutBtn} onPress={logOut}>
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-// Placeholder screens
+// 👇 NEW: Settings Screen with Logout Button
+const SettingsScreen = () => {
+  const { logOut } = useAuth();
+
+  return (
+    <View style={styles.screen}>
+      <Text style={styles.screenTitle}>Settings</Text>
+      
+      <View style={styles.settingsContainer}>
+        <Text style={styles.sectionHeader}>Account</Text>
+        
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={logOut}>
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+// Placeholder for other tabs
 const PlaceholderScreen = ({ route }) => (
   <View style={styles.screen}>
     <Text style={styles.screenTitle}>{route.name}</Text>
@@ -35,7 +52,7 @@ export const AppNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: COLORS.pink,
+        tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.gray,
         tabBarStyle: {
           paddingBottom: 8,
@@ -60,14 +77,17 @@ export const AppNavigator = () => {
             default:
               icon = '📱';
           }
-          return <Text style={{ fontSize: 22 }}>{icon}</Text>;
+          // Simple opacity change for active/inactive state
+          return <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>{icon}</Text>;
         },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Schedule" component={PlaceholderScreen} />
       <Tab.Screen name="Contacts" component={PlaceholderScreen} />
-      <Tab.Screen name="Settings" component={PlaceholderScreen} />
+      
+      {/* 👇 Connect the SettingsScreen here */}
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 };
@@ -92,19 +112,40 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 16,
-    color: COLORS.pink,
+    color: COLORS.primary, // Uses your pink color
     marginTop: 5,
     marginBottom: 30,
+    fontWeight: '500',
+  },
+  // Settings Styles
+  settingsContainer: {
+    width: '100%',
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  sectionHeader: {
+    alignSelf: 'flex-start',
+    fontSize: 14,
+    color: COLORS.gray,
+    marginBottom: 15,
+    marginLeft: '10%',
   },
   logoutBtn: {
-    backgroundColor: COLORS.pink,
+    backgroundColor: COLORS.primary, // Pink background
     paddingVertical: 12,
     paddingHorizontal: 40,
     borderRadius: 25,
+    width: '80%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

@@ -54,6 +54,12 @@ const updateProfileValidator = [
     .optional()
     .trim(),
   
+  body('about')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('About section cannot exceed 500 characters'),
+  
   body('profilePhoto')
     .optional()
     .isURL()
