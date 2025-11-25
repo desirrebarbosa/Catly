@@ -29,10 +29,11 @@ router.post('/signup', signUpValidator, signUp);
 router.post('/login', logInValidator, logIn);
 router.post('/password-reset', passwordResetValidator, requestPasswordReset);
 
+// Logout should be accessible even if token is expired to allow clearing client state
+router.post('/logout', logOut);
+
 // Protected
-router.post('/logout', authenticate, logOut);
 router.get('/profile', authenticate, getProfile);
 router.put('/profile', authenticate, updateProfileValidator, updateProfile);
 
-// ⚠️ THIS IS THE LINE THAT WAS LIKELY MISSING OR BROKEN
 module.exports = router;

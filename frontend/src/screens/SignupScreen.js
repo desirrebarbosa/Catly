@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  View, Text, StyleSheet, Image,
-  TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, 
-  Platform, ScrollView, Dimensions 
+import {
+  View, Text, StyleSheet, Image, TextInput, TouchableOpacity,
+  Alert, KeyboardAvoidingView, Platform, ScrollView, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/colors';
+import globalStyles from '../constants/globalStyles';
 
 const { width } = Dimensions.get('window');
 
@@ -27,25 +27,19 @@ export const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    // 👇 FIX 1: Edges prop ensures bottom is handled by the white view, not the pink container
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={globalStyles.containerPrimary} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
-          
           <View style={styles.header}>
-            <Image 
-              source={require('../assets/catly-logo-white.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <Image source={require('../assets/catly-logo-white.png')} style={styles.logo} resizeMode="contain" />
           </View>
 
           <View style={styles.formContainer}>
-            <Text style={styles.welcomeTitle}>Start your purr-fect journey!</Text>
+            <Text style={globalStyles.authTitle}>Start your purr-fect journey!</Text>
 
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={globalStyles.input}
                 placeholder="Email"
                 placeholderTextColor={COLORS.gray}
                 value={email}
@@ -54,7 +48,7 @@ export const SignupScreen = ({ navigation }) => {
                 autoCapitalize="none"
               />
               <TextInput
-                style={styles.input}
+                style={globalStyles.input}
                 placeholder="Username"
                 placeholderTextColor={COLORS.gray}
                 value={username}
@@ -62,7 +56,7 @@ export const SignupScreen = ({ navigation }) => {
                 autoCapitalize="none"
               />
               <TextInput
-                style={styles.input}
+                style={globalStyles.input}
                 placeholder="Password"
                 placeholderTextColor={COLORS.gray}
                 value={password}
@@ -71,12 +65,18 @@ export const SignupScreen = ({ navigation }) => {
               />
             </View>
 
-            <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={loading}>
-              <Text style={styles.signupButtonText}>{loading ? 'Loading...' : 'Sign up'}</Text>
+            <TouchableOpacity
+              style={[globalStyles.primaryButton, styles.button, loading && globalStyles.disabledButton]}
+              onPress={handleSignup}
+              disabled={loading}
+            >
+              <Text style={globalStyles.primaryButtonText}>{loading ? 'Loading...' : 'Sign up'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLinkContainer}>
-              <Text style={styles.loginText}>Already have an account? <Text style={styles.loginLink}>Log in</Text></Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
+              <Text style={globalStyles.textGray}>
+                Already have an account? <Text style={globalStyles.link}>Log in</Text>
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -86,7 +86,6 @@ export const SignupScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
   header: { height: '35%', justifyContent: 'center', alignItems: 'center' },
   logo: { width: width * 0.5, height: width * 0.5 },
   formContainer: {
@@ -98,19 +97,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     alignItems: 'center',
   },
-  welcomeTitle: { fontSize: 16, color: COLORS.primary, fontWeight: '500', marginBottom: 25 },
   inputWrapper: { width: '100%', marginBottom: 15 },
-  input: {
-    borderWidth: 1, borderColor: '#EEEEEE', backgroundColor: '#F9F9F9',
-    borderRadius: 10, paddingHorizontal: 15, paddingVertical: 15, fontSize: 14,
-    marginBottom: 15, color: COLORS.black,
-  },
-  signupButton: {
-    backgroundColor: COLORS.primary, paddingVertical: 12, paddingHorizontal: 40,
-    borderRadius: 10, marginTop: 5, elevation: 2,
-  },
-  signupButtonText: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
-  loginLinkContainer: { marginTop: 20 },
-  loginText: { color: COLORS.gray, fontSize: 13 },
-  loginLink: { color: COLORS.primary, fontWeight: 'bold', textDecorationLine: 'underline' },
+  button: { paddingHorizontal: 40, marginTop: 5 },
+  linkContainer: { marginTop: 20 },
 });

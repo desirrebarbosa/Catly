@@ -2,19 +2,17 @@ const errorHandler = (err, req, res, next) => {
   console.error('Error:', err);
 
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  let message = err.message || 'Internal Server Error';
 
-  if (err.data) {
-    return res.status(statusCode).json({
-      success: false,
-      error: message,
-      details: err.data
-    });
+  // Combine validation errors into a single string
+  if (err.data && Array.isArray(err.data)) {
+    message = err.data.map(e => e.msg).join(', ');
   }
 
   res.status(statusCode).json({
     success: false,
     error: message,
+    details: err.data,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };

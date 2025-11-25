@@ -1,13 +1,9 @@
-// const API_URL = 'http://10.0.2.2:3000/api'; // Android emulator
-// const API_URL = 'http://localhost:3000/api'; // iOS simulator
-const API_URL = 'http://192.168.1.21:3000/api'; // physical device
+const API_URL = 'http://192.168.1.21:3000/api';
+
 export const authAPI = {
   signUp: async (email, password, name) => {
     try {
-      const fullUrl = `${API_URL}/auth/signup`;
-      console.log('Attempting to fetch:', fullUrl); 
-
-      const response = await fetch(fullUrl, {
+      const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),

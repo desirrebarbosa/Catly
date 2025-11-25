@@ -1,47 +1,62 @@
-import React, { createContext, useState, useEffect, useContext } from 'react'; // 👈 Added useContext
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api.service';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
 
-  const login = async (email, password) => {
+  const logIn = async (email, password) => {
     setIsLoading(true);
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, user } = response.data;
-
       setUserInfo(user);
       setUserToken(token);
-      
       await AsyncStorage.setItem('userToken', token);
       await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+      return { success: true };
     } catch (error) {
       console.log(`Login Error: ${error}`);
-      throw error;
+      return { success: false, error: error.message || 'Login failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signup = async (name, email, password, phone) => {
+  const signUp = async (email, password, username) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/signup', { name, email, password, phone });
+      const response = await api.post('/auth/signup', { name: username, email, password });
       const { token, user } = response.data;
-
       setUserInfo(user);
       setUserToken(token);
-      
       await AsyncStorage.setItem('userToken', token);
       await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+      return { success: true };
     } catch (error) {
       console.log(`Signup Error: ${error}`);
-      throw error;
+      return { success: false, error: error.message || 'Signup failed' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    setIsLoading(true);
+    try {
+      const response = await api.put('/auth/profile', profileData);
+      const updatedUser = response.data?.user || response.data;
+      const newUserInfo = { ...userInfo, ...updatedUser };
+      setUserInfo(newUserInfo);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(newUserInfo));
+      return { success: true };
+    } catch (error) {
+      console.log(`Update Profile Error: ${error}`);
+      return { success: false, error: error.message || 'Failed to update profile' };
     } finally {
       setIsLoading(false);
     }
@@ -62,15 +77,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const isLoggedIn = async () => {
+  const checkLoginStatus = async () => {
     try {
       setIsLoading(true);
-      let userToken = await AsyncStorage.getItem('userToken');
-      let userInfo = await AsyncStorage.getItem('userInfo');
-      
-      if (userToken) {
-        setUserToken(userToken);
-        setUserInfo(JSON.parse(userInfo));
+      const storedToken = await AsyncStorage.getItem('userToken');
+      const storedUserInfo = await AsyncStorage.getItem('userInfo');
+      if (storedToken) {
+        setUserToken(storedToken);
+        setUserInfo(JSON.parse(storedUserInfo));
       }
     } catch (e) {
       console.log(`isLoggedIn error ${e}`);
@@ -80,11 +94,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    isLoggedIn();
+    checkLoginStatus();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ login, signup, logout, isLoading, userToken, userInfo }}>
+    <AuthContext.Provider value={{ logIn, signUp, logout, updateProfile, isLoading, userToken, userInfo }}>
       {children}
     </AuthContext.Provider>
   );

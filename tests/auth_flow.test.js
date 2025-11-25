@@ -1,69 +1,64 @@
-const axios = require('axios');
+const TestClient = require('./lib/TestClient');
 
-const API_URL = 'http://localhost:3000/api/auth';
+const client = new TestClient('http://localhost:3000/api/auth');
+
 const TEST_USER = {
-  email: `test.catly.${Date.now()}@example.com`,
+  email: `enterprise.test.${Date.now()}@catly.com`,
   password: 'Password123!',
-  name: 'Test User',
-  phone: '09171234567'
+  name: 'Enterprise User',
+  phone: '09170001234'
 };
 
-let authToken = '';
-
-async function runTests() {
-  console.log('STARTING CATLY AUTHENTICATION TEST MODULE');
-  console.log(`Target: ${API_URL}\n`);
+async function runAuthSuite() {
+  console.log('\n \x1b[1mSTARTING AUTHENTICATION SUITE\x1b[0m');
+  console.log('-----------------------------------');
 
   try {
     // 1. Sign Up
-    process.stdout.write(`1. Testing Sign Up (${TEST_USER.email})... `);
-    const signupRes = await axios.post(`${API_URL}/signup`, TEST_USER);
-    if (signupRes.data.success) console.log('PASSED');
+    const signupRes = await client.post('/signup', TEST_USER, 'Sign Up');
+    client.assert(signupRes.success, 'Response should be successful');
 
     // 2. Log In
-    process.stdout.write('2. Testing Log In... ');
-    const loginRes = await axios.post(`${API_URL}/login`, {
+    const loginRes = await client.post('/login', {
       email: TEST_USER.email,
       password: TEST_USER.password
-    });
-    authToken = loginRes.data.data.token; // Get Token
-    if (loginRes.data.success) console.log('PASSED');
+    }, 'Log In');
+    
+    // Save token to client state
+    client.setToken(loginRes.data.token);
 
     // 3. Get Profile
-    process.stdout.write('3. Testing Get Profile (Protected)... ');
-    const profileRes = await axios.get(`${API_URL}/profile`, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
-    if (profileRes.data.data.user.email === TEST_USER.email) {
-      console.log('PASSED');
-    } else {
-      console.log('FAILED (Email mismatch)');
-    }
+    const profileRes = await client.get('/profile', 'Get Profile');
+    client.assert(
+      profileRes.data.user.email === TEST_USER.email, 
+      `Email should be ${TEST_USER.email}`
+    );
 
     // 4. Update Profile
-    process.stdout.write('4. Testing Update Profile... ');
-    const updateRes = await axios.put(`${API_URL}/profile`, 
-      { about: 'Test Bio' },
-      { headers: { Authorization: `Bearer ${authToken}` } }
+    const updateData = { about: 'Updated via Enterprise Test Suite' };
+    const updateRes = await client.put('/profile', updateData, 'Update Profile');
+    client.assert(
+      updateRes.data.user.about === updateData.about, 
+      'Bio should be updated'
     );
-    if (updateRes.data.success) console.log('PASSED');
 
     // 5. Log Out
-    process.stdout.write('5. Testing Log Out... ');
-    const logoutRes = await axios.post(`${API_URL}/logout`, {}, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
-    if (logoutRes.data.success) console.log('PASSED');
+    await client.post('/logout', {}, 'Log Out');
+
+    console.log('-----------------------------------');
+    console.log('\x1b[32mAUTH SUITE COMPLETED SUCCESSFULLY\x1b[0m\n');
+    
+    // Return token for other tests to use if needed
+    return client.token;
 
   } catch (error) {
-    console.log('FAILED');
-    if (error.response) {
-      console.log(`   Error: ${error.response.data.error}`);
-      if (error.response.data.details) console.log(`   Details: ${error.response.data.details}`);
-    } else {
-      console.log(`   Error: ${error.message}`);
-    }
+    console.log('-----------------------------------');
+    console.log(' \x1b[31mAUTH SUITE CRASHED\x1b[0m\n');
+    process.exit(1);
   }
 }
 
-runTests();
+// Allow running standalone or imported
+if (require.main === module) runAuthSuite();
+
+module.exports = { runAuthSuite, client };

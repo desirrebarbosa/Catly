@@ -1,10 +1,14 @@
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient({
+// Use a global variable to store the Prisma Client instance
+// This prevents creating multiple connections during hot-reloading in development
+const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
-// test connection
+if (process.env.NODE_ENV === 'development') {
+  global.prisma = prisma;
+}
 
 async function connectDatabase() {
   try {

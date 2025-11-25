@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { COLORS } from '../constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from '../constants/colors';
+import globalStyles from '../constants/globalStyles';
 
 const { width } = Dimensions.get('window');
 
 export const Welcome2Screen = ({ navigation }) => {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Image 
-          source={require('../assets/catly-logo-white.png')} 
+    <SafeAreaView style={globalStyles.containerPrimary}>
+      <View style={globalStyles.center}>
+        <Image
+          source={require('../assets/catly-logo-white.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -18,10 +19,7 @@ export const Welcome2Screen = ({ navigation }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.startButton}
-          onPress={() => navigation.navigate('Login')}
-        >
+        <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('Login')}>
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
       </View>
@@ -30,32 +28,9 @@ export const Welcome2Screen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.primary, // Make sure this is your Pink color
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 50,
-  },
-  logo: {
-    width: width * 0.6,
-    height: width * 0.6,
-    marginBottom: 20,
-  },
-  tagline: {
-    fontSize: 16,
-    color: COLORS.white,
-    textAlign: 'center',
-    fontWeight: '600',
-    lineHeight: 24,
-  },
-  buttonContainer: {
-    paddingBottom: 60,
-    alignItems: 'center',
-  },
+  logo: { width: width * 0.6, height: width * 0.6, marginBottom: 20 },
+  tagline: { fontSize: 16, color: COLORS.white, textAlign: 'center', fontWeight: '600', lineHeight: 24 },
+  buttonContainer: { paddingBottom: 60, alignItems: 'center' },
   startButton: {
     backgroundColor: COLORS.white,
     paddingVertical: 12,
@@ -67,9 +42,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  startButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  startButtonText: { color: COLORS.primary, fontSize: 16, fontWeight: 'bold' },
 });

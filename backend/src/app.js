@@ -5,6 +5,7 @@ const errorHandler = require('./middleware/error.middleware');
 
 // import routes
 const authRoutes = require('./routes/auth.routes');
+const catRoutes = require('./routes/cat.routes');
 
 // create Express app
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.use('/api/auth', authRoutes);
+app.use('/api/cats', catRoutes);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 

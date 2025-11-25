@@ -1,151 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../constants/colors';
+import { createStackNavigator } from '@react-navigation/stack';
 
-const Tab = createBottomTabNavigator();
+import CatListScreen from '../screens/CatListScreen';
+import AddCatScreen from '../screens/AddCatScreen';
+import EditCatScreen from '../screens/EditCatScreen';
+import CatDetailsScreen from '../screens/CatDetailsScreen';
+import HealthLogScreen from '../screens/HealthLogScreen';
+import AddHealthEventScreen from '../screens/AddHealthEventScreen';
+import FamilyTreeScreen from '../screens/FamilyTreeScreen';
 
-// placeholder homescreen
-const HomeScreen = () => {
-  const { user } = useAuth();
-  
+const Stack = createStackNavigator();
+
+const AppNavigator = () => {
   return (
-    <View style={styles.screen}>
-      <Text style={styles.screenTitle}>Welcome to Catly!</Text>
-      <Text style={styles.screenText}>You are logged in as:</Text>
-      <Text style={styles.email}>{user?.email}</Text>
-    </View>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Dashboard" component={CatListScreen} />
+      <Stack.Screen name="AddCat" component={AddCatScreen} />
+      <Stack.Screen name="EditCat" component={EditCatScreen} />
+      <Stack.Screen name="CatDetails" component={CatDetailsScreen} />
+      <Stack.Screen name="HealthLog" component={HealthLogScreen} />
+      <Stack.Screen name="AddHealthEvent" component={AddHealthEventScreen} />
+      <Stack.Screen name="FamilyTree" component={FamilyTreeScreen} />
+    </Stack.Navigator>
   );
 };
 
-// placeholder setting w logout
-const SettingsScreen = () => {
-  const { logOut } = useAuth();
-
-  return (
-    <View style={styles.screen}>
-      <Text style={styles.screenTitle}>Settings</Text>
-      
-      <View style={styles.settingsContainer}>
-        <Text style={styles.sectionHeader}>Account</Text>
-        
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={logOut}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
-
-// placeholder for other tabs
-const PlaceholderScreen = ({ route }) => (
-  <View style={styles.screen}>
-    <Text style={styles.screenTitle}>{route.name}</Text>
-    <Text style={styles.screenText}>Coming soon...</Text>
-  </View>
-);
-
-export const AppNavigator = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.gray,
-        tabBarStyle: {
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 60,
-        },
-        tabBarIcon: ({ focused }) => {
-          let icon;
-          switch (route.name) {
-            case 'Home':
-              icon = '🏠';
-              break;
-            case 'Schedule':
-              icon = '📅';
-              break;
-            case 'Contacts':
-              icon = '👥';
-              break;
-            case 'Settings':
-              icon = '⚙️';
-              break;
-            default:
-              icon = '📱';
-          }
-          // Simple opacity change for active/inactive state
-          return <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>{icon}</Text>;
-        },
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Schedule" component={PlaceholderScreen} />
-      <Tab.Screen name="Contacts" component={PlaceholderScreen} />
-      
-      {/* 👇 Connect the SettingsScreen here */}
-      <Tab.Screen name="Settings" component={SettingsScreen} />
-    </Tab.Navigator>
-  );
-};
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-  },
-  screenTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: COLORS.black,
-    marginBottom: 10,
-  },
-  screenText: {
-    fontSize: 16,
-    color: COLORS.gray,
-  },
-  email: {
-    fontSize: 16,
-    color: COLORS.primary, // Uses your pink color
-    marginTop: 5,
-    marginBottom: 30,
-    fontWeight: '500',
-  },
-  // Settings Styles
-  settingsContainer: {
-    width: '100%',
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  sectionHeader: {
-    alignSelf: 'flex-start',
-    fontSize: 14,
-    color: COLORS.gray,
-    marginBottom: 15,
-    marginLeft: '10%',
-  },
-  logoutBtn: {
-    backgroundColor: COLORS.primary, // Pink background
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    width: '80%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+export default AppNavigator;
