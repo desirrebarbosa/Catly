@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeftIcon, CameraIcon } from 'react-native-heroicons/outline';
 import * as ImagePicker from 'expo-image-picker';
 import { useCats } from '../context/CatContext';
 import { Button } from '../components/ui/Button';
@@ -14,6 +16,7 @@ const Image = RNImage as any;
 
 export const EditCatScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const route = useRoute<any>();
   const { cat } = route.params;
   const { updateCat, cats, fetchCats } = useCats();
@@ -107,26 +110,34 @@ export const EditCatScreen = () => {
 
   return (
     <View className="flex-1 bg-primary">
-      <View className="pt-14 pb-4 px-5 flex-row justify-between items-center">
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text className="text-white font-bold">Cancel</Text></TouchableOpacity>
+      <View 
+        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }} 
+        className="px-5 flex-row justify-between items-center"
+      >
+        <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            className="bg-white/20 p-2 rounded-xl"
+        >
+            <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
+        </TouchableOpacity>
         <Text className="text-white text-xl font-bold">Edit Profile</Text>
         <View className="w-10" />
       </View>
 
       <View className="flex-1 bg-white rounded-t-[30px] px-6 pt-8">
-        <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           
            <View className="items-center mb-6">
             <TouchableOpacity onPress={pickImage} className="relative">
-              <View className="w-32 h-32 rounded-full bg-gray-100 border-2 border-gray-200 justify-center items-center overflow-hidden">
+              <View className="w-32 h-32 rounded-full bg-gray-100 border-4 border-gray-100 justify-center items-center overflow-hidden shadow-sm">
                 {photo ? (
                   <Image source={{ uri: photo }} className="w-full h-full" />
                 ) : (
-                  <Text className="text-4xl text-gray-300">📷</Text>
+                  <CameraIcon size={32} color="#D1D5DB" />
                 )}
               </View>
-              <View className="absolute bottom-0 right-0 bg-secondary w-8 h-8 rounded-full justify-center items-center border-2 border-white">
-                <Text className="text-white font-bold text-xs">Edit</Text>
+              <View className="absolute bottom-0 right-0 bg-secondary w-8 h-8 rounded-full justify-center items-center border-2 border-white shadow-sm">
+                <PencilIcon size={14} color="white" />
               </View>
             </TouchableOpacity>
           </View>
@@ -156,7 +167,7 @@ export const EditCatScreen = () => {
               </View>
           </View>
 
-          <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl mb-8 mt-2">
+          <View className="flex-row items-center justify-between bg-gray-50 p-4 rounded-xl mb-8 mt-2 border border-gray-100">
               <View>
                  <Text className="text-secondary font-bold text-base">Archive Cat</Text>
                  <Text className="text-gray-400 text-xs">Hide from main list</Text>
@@ -175,7 +186,7 @@ export const EditCatScreen = () => {
 
        <Modal visible={pickerVisible} animationType="slide" transparent>
           <View className="flex-1 bg-black/50 justify-end">
-              <View className="bg-white rounded-t-3xl p-6 h-1/2">
+              <View className="bg-white rounded-t-[30px] p-6 h-1/2">
                   <Text className="text-xl font-bold text-secondary mb-4">Select {pickerType === 'mother' ? 'Mother' : 'Father'}</Text>
                   <ScrollView>
                       <TouchableOpacity 
@@ -205,3 +216,6 @@ export const EditCatScreen = () => {
     </View>
   );
 };
+
+// Helper Icon for edit button
+import { PencilIcon } from 'react-native-heroicons/solid';
