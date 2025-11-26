@@ -1,0 +1,62 @@
+// api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  about     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cats      Cat[]
+}
+
+model Cat {
+  id         String   @id @default(uuid())
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id])
+  name       String
+  breed      String?
+  gender     String
+  weight     Float?
+  isSpayed   Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Lineage Relations (Self-Referencing)
+  motherId       String?
+  mother         Cat?  @relation("MotherToChild", fields: [motherId], references: [id])
+  childrenMother Cat[] @relation("MotherToChild")
+
+  fatherId       String?
+  father         Cat?  @relation("FatherToChild", fields: [fatherId], references: [id])
+  childrenFather Cat[] @relation("FatherToChild")
+
+  healthEvents HealthEvent[]
+}
+
+model HealthEvent {
+  id        String   @id @default(uuid())
+  catId     String
+  cat       Cat      @relation(fields: [catId], references: [id])
+  title     String
+  eventType String
+  notes     String?
+  diagnosis String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
