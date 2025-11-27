@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
+import bcrypt from 'bcryptjs';
 
 export const signup = async (req: any, res: any) => {
   try {
@@ -13,11 +14,13 @@ export const signup = async (req: any, res: any) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    // In a production app, password should be hashed here (e.g. using bcrypt)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newUser = await prisma.user.create({
       data: {
         email,
-        password, // Store hashed password in real app
+        password: hashedPassword,
         name,
         phone: '',
         about: '',
@@ -27,7 +30,7 @@ export const signup = async (req: any, res: any) => {
     res.status(201).json({ 
       success: true, 
       data: { 
-        token: `jwt-token-${newUser.id}`, // Integrate real JWT generation here
+        token: `jwt-token-${newUser.id}`, // In production, use real JWT library
         user: { id: newUser.id, name: newUser.name, email: newUser.email } 
       } 
     });
@@ -45,7 +48,13 @@ export const login = async (req: any, res: any) => {
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
@@ -57,7 +66,7 @@ export const login = async (req: any, res: any) => {
           id: user.id, 
           name: user.name, 
           email: user.email,
-          phone: user.phone || '', // Handle nullable fields
+          phone: user.phone || '', 
           about: user.about || '' 
         } 
       } 
@@ -70,15 +79,16 @@ export const login = async (req: any, res: any) => {
 
 export const getProfile = async (req: any, res: any) => {
   try {
-    // In a real app, you would get the ID from req.user.id (middleware)
-    // For now, we fetch the first user found or a specific demo user
     const user = await prisma.user.findFirst();
     
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    res.json({ success: true, data: { user } });
+    // Exclude password from response
+    const { password, ...userData } = user;
+
+    res.json({ success: true, data: { user: userData } });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch profile' });
   }
@@ -88,7 +98,6 @@ export const updateProfile = async (req: any, res: any) => {
   try {
     const { name, phone, about } = req.body;
     
-    // In a real app, use req.user.id
     const currentUser = await prisma.user.findFirst();
 
     if (!currentUser) {
@@ -100,13 +109,15 @@ export const updateProfile = async (req: any, res: any) => {
       data: { name, phone, about },
     });
     
-    res.json({ success: true, message: 'Profile updated', data: { user: updatedUser } });
+    const { password, ...userData } = updatedUser;
+    
+    res.json({ success: true, message: 'Profile updated', data: { user: userData } });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Update failed' });
   }
 };
 
 export const requestPasswordReset = async (req: any, res: any) => {
-  // Real implementation would check DB and send email via SMTP/SendGrid
+  // In a real app, send email here
   res.json({ success: true, message: 'If an account exists, instructions have been sent.' });
 };

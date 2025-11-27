@@ -31,6 +31,19 @@ export const CatDetailsScreen = () => {
     ]);
   };
 
+  const calculateAge = (dateString: string) => {
+      if(!dateString) return 'Unknown age';
+      const birth = new Date(dateString);
+      const now = new Date();
+      let years = now.getFullYear() - birth.getFullYear();
+      let months = now.getMonth() - birth.getMonth();
+      if (months < 0) {
+          years--;
+          months += 12;
+      }
+      return `${years} years, ${months} months old`;
+  };
+
   if (isLoading || !currentCat) {
     return <View className="flex-1 justify-center items-center bg-white"><ActivityIndicator size="large" color="#F5A9C8" /></View>;
   }
@@ -72,9 +85,17 @@ export const CatDetailsScreen = () => {
         {/* Cat Basic Info */}
         <View className="items-center mb-6 border-b border-gray-100 pb-6">
             <Text className="text-3xl font-extrabold text-secondary mb-1 tracking-tight">{currentCat.name}</Text>
-            <Text className="text-secondaryLight text-base mb-3 font-medium">{currentCat.breed || 'Domestic Cat'} • {currentCat.gender}</Text>
+            {currentCat.nickname && (
+                <Text className="text-gray-400 font-bold italic mb-1">"{currentCat.nickname}"</Text>
+            )}
+            <Text className="text-secondaryLight text-base mb-3 font-medium">
+                {currentCat.breed || 'Domestic'} • {currentCat.gender}
+            </Text>
+            {currentCat.birthDate && (
+                 <Text className="text-gray-400 text-sm mb-3">{calculateAge(currentCat.birthDate)}</Text>
+            )}
             <View className="bg-primaryLight px-5 py-1.5 rounded-full">
-                 <Text className="text-primaryDark font-bold text-sm">{currentCat.weight} kg</Text>
+                 <Text className="text-primaryDark font-bold text-sm">{currentCat.weight || '?'} kg</Text>
             </View>
         </View>
 
@@ -97,10 +118,11 @@ export const CatDetailsScreen = () => {
             <View className="gap-6 pb-6">
                 <View className="bg-primary/5 p-6 rounded-[30px] border border-primary/10">
                     <Text className="text-primaryDark font-bold text-xl mb-4">About {currentCat.name}</Text>
+                    <InfoRow label="Date of Birth" value={currentCat.birthDate ? new Date(currentCat.birthDate).toDateString() : 'Unknown'} />
                     <InfoRow label="Spayed/Neutered" value={currentCat.isSpayed ? 'Yes' : 'No'} />
-                    <InfoRow label="Color/Markings" value="Standard" />
-                    <InfoRow label="Identifying Features" value="None listed" />
-                    <InfoRow label="Status" value={currentCat.isArchived ? 'Archived' : 'Active'} />
+                    <InfoRow label="Color/Markings" value={currentCat.color || 'N/A'} />
+                    <InfoRow label="Eye Color" value={currentCat.eyeColor || 'N/A'} />
+                    <InfoRow label="Identifying Features" value={currentCat.features || 'None listed'} />
                 </View>
                 
                 {/* Delete Button at the bottom */}
@@ -195,6 +217,6 @@ export const CatDetailsScreen = () => {
 const InfoRow = ({ label, value }: any) => (
   <View className="flex-row justify-between py-3 border-b border-gray-200/50 last:border-0">
     <Text className="text-gray-500 font-medium text-base">{label}</Text>
-    <Text className="text-secondary font-bold text-base">{value}</Text>
+    <Text className="text-secondary font-bold text-base max-w-[50%] text-right" numberOfLines={2}>{value}</Text>
   </View>
 );

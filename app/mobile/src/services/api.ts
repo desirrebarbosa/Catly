@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // For Android Emulator: Use 'http://10.0.2.2:3000/api'
 // For iOS Simulator: Use 'http://localhost:3000/api'
 // For Physical Device: Use your computer's LAN IP, e.g., 'http://192.168.1.X:3000/api'
-const BASE_URL = 'http://192.168.1.21:3000/api'; 
+const BASE_URL = 'http://10.0.2.2:3000/api'; 
 
 class ApiService {
   async _getHeaders() {

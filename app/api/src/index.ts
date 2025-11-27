@@ -17,12 +17,12 @@ app.use('/api/cats', catRouter);
 
 // Base route
 app.get('/', (req, res) => {
-  res.send('🐱 Catly API is Purring!');
+  res.send('Catly API is Purring!');
 });
 
 // Start Server
 app.listen(PORT, async () => {
-  console.log(`🚀 API Server running on port ${PORT}`);
+  console.log(`API Server running on port ${PORT}`);
   
   // // Run Auto-Archiver on startup
   // console.log("⏳ Checking for inactive cats...");
