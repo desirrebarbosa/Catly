@@ -8,6 +8,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCats } from '../context/CatContext';
 import { Button } from '../components/ui/Button';
 
+// NativeWind Casting
 const View = RNView as any;
 const Text = RNText as any;
 const TextInput = RNTextInput as any;
@@ -20,7 +21,7 @@ export const AddCatScreen = () => {
   const insets = useSafeAreaInsets();
   const { addCat, cats, fetchCats, isLoading } = useCats();
   
-  // Fields
+  // Form State
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
   const [breed, setBreed] = useState('');
@@ -43,15 +44,22 @@ export const AddCatScreen = () => {
   useEffect(() => { fetchCats(); }, []);
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      base64: true,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const base64Data = result.assets[0].base64;
+        const photoUri = `data:image/jpeg;base64,${base64Data}`;
+        setPhoto(photoUri);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to pick image');
     }
   };
 
@@ -78,7 +86,7 @@ export const AddCatScreen = () => {
           color, eyeColor, features,
           isSpayed, motherId, fatherId, photoUrl: photo 
       });
-      Alert.alert('Success', 'Cat added!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'Profile created successfully!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to add cat');
     }
@@ -99,97 +107,107 @@ export const AddCatScreen = () => {
   );
 
   return (
-    <View className="flex-1 bg-primary">
-      {/* Header */}
+    <View className="flex-1 bg-white">
+      {/* Pink Background Top Half */}
+      <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary" />
+
+      {/* Fixed Header */}
       <View 
-        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }} 
-        className="px-5 flex-row items-center justify-between z-10"
+        style={{ paddingTop: insets.top, height: insets.top + 56 }} 
+        className="px-6 flex-row items-center justify-between z-20 bg-primary"
       >
         <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="bg-white/20 p-2 rounded-xl backdrop-blur-md"
+            className="w-10 h-10 bg-white/20 items-center justify-center rounded-full"
         >
           <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text className="text-xl font-extrabold text-white tracking-wide">Add Profile</Text>
+        <Text className="text-xl font-bold text-white tracking-wide">Add Profile</Text>
         <View className="w-10" />
       </View>
 
-      <View className="flex-1 bg-gray-50 rounded-t-[35px] mt-2 overflow-hidden shadow-2xl">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-          <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-            
-            {/* Photo Uploader */}
-            <View className="items-center -mt-12 mb-8 z-20">
-              <TouchableOpacity onPress={pickImage} className="relative shadow-lg active:scale-95 transition-transform">
-                <View className="w-32 h-32 rounded-full bg-white border-4 border-gray-50 justify-center items-center overflow-hidden">
-                  {photo ? (
-                    <Image source={{ uri: photo }} className="w-full h-full" />
-                  ) : (
-                    <CameraIcon size={36} color="#E5E7EB" />
-                  )}
-                </View>
-                <View className="absolute bottom-1 right-1 bg-primary w-9 h-9 rounded-full justify-center items-center border-2 border-white shadow-sm">
-                  <Text className="text-white font-bold text-xl leading-none pb-0.5">+</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 50 }}
+        >
+            <View className="h-10" /> 
 
-            {/* Form Fields */}
-            <View className="gap-6">
-                <SectionHeader title="Identity" />
-                <View className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
-                    <InputGroup label="Name" value={name} onChangeText={setName} placeholder="e.g. Luna" />
-                    <InputGroup label="Nickname" value={nickname} onChangeText={setNickname} placeholder="e.g. Lulu" />
+            {/* Main White Card */}
+            <View className="bg-white rounded-t-[40px] px-6 min-h-screen pt-20 shadow-none">
+                
+                {/* Floating Avatar (Negative Margin) */}
+                <View className="absolute -top-16 left-0 right-0 items-center z-10">
+                    <TouchableOpacity onPress={pickImage} className="active:opacity-80 relative shadow-xl">
+                        <View className="w-32 h-32 rounded-full bg-gray-50 border-[6px] border-white justify-center items-center overflow-hidden">
+                            {photo ? (
+                                <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
+                            ) : (
+                                <CameraIcon size={40} color="#E5E7EB" />
+                            )}
+                        </View>
+                        <View className="absolute bottom-1 right-1 bg-primary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                            <Text className="text-white font-bold text-lg leading-none mb-0.5">+</Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
-                <SectionHeader title="Physical Attributes" />
-                <View className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
-                    <View className="flex-row gap-4">
-                        <View className="flex-1">
-                            <InputGroup label="Breed" value={breed} onChangeText={setBreed} placeholder="Siamese" />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-xs text-gray-500 font-bold ml-1 mb-1.5 uppercase">Weight (kg)</Text>
-                            <View className="bg-gray-50 border border-gray-200 rounded-2xl h-14 flex-row items-center px-4">
-                                <ScaleIcon size={18} color="#9CA3AF" />
-                                <TextInput 
-                                    className="flex-1 ml-2 text-base text-secondary font-medium h-full"
-                                    value={weight}
-                                    onChangeText={setWeight}
-                                    placeholder="0.0"
-                                    placeholderTextColor="#D1D5DB"
-                                    keyboardType="numeric"
-                                />
-                            </View>
-                        </View>
+                {/* Form Content */}
+                <View className="gap-6 mt-4">
+                    
+                    {/* Identity */}
+                    <View>
+                        <SectionTitle title="Identity" />
+                        <InputGroup label="Name" value={name} onChangeText={setName} placeholder="e.g. Luna" />
+                        <View className="h-4" />
+                        <InputGroup label="Nickname" value={nickname} onChangeText={setNickname} placeholder="e.g. Lulu" />
                     </View>
 
-                    {/* Gender Selection */}
+                    {/* Appearance */}
                     <View>
-                        <Text className="text-xs text-gray-500 font-bold ml-1 mb-2 uppercase">Gender</Text>
-                        <View className="flex-row bg-gray-50 p-1 rounded-2xl border border-gray-200">
+                        <SectionTitle title="Physical Attributes" />
+                        <View className="flex-row gap-4 mb-4">
+                            <View className="flex-1">
+                                <InputGroup label="Breed" value={breed} onChangeText={setBreed} placeholder="Siamese" />
+                            </View>
+                            <View className="flex-1">
+                                <Label text="Weight (kg)" />
+                                <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl h-[56px] px-4">
+                                    <ScaleIcon size={18} color="#9CA3AF" />
+                                    <TextInput
+                                        className="flex-1 ml-2 text-base text-secondary h-full font-medium"
+                                        value={weight}
+                                        onChangeText={setWeight}
+                                        placeholder="0.0"
+                                        keyboardType="numeric"
+                                        placeholderTextColor="#D1D5DB"
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Gender */}
+                        <Label text="Gender" />
+                        <View className="flex-row bg-gray-50 p-1.5 rounded-2xl border border-gray-100 h-[58px] mb-4">
                             {['Male', 'Female'].map(g => (
                                 <TouchableOpacity 
                                     key={g} 
                                     onPress={() => setGender(g)}
-                                    className={`flex-1 py-3 rounded-xl ${gender === g ? 'bg-white shadow-sm' : 'bg-transparent'}`}
+                                    className={`flex-1 justify-center items-center rounded-xl transition-all ${gender === g ? 'bg-white shadow-sm border border-gray-100' : ''}`}
                                 >
-                                    <Text className={`text-center font-bold text-sm ${gender === g ? 'text-primary' : 'text-gray-400'}`}>{g}</Text>
+                                    <Text className={`font-bold ${gender === g ? 'text-primary' : 'text-gray-400'}`}>{g}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
-                    </View>
 
-                    {/* Date Picker */}
-                    <View>
-                        <Text className="text-xs text-gray-500 font-bold ml-1 mb-1.5 uppercase">Date of Birth</Text>
+                        {/* DOB */}
+                        <Label text="Date of Birth" />
                         <TouchableOpacity 
                             onPress={() => setShowDatePicker(true)}
-                            className="bg-gray-50 border border-gray-200 rounded-2xl h-14 flex-row items-center px-4 active:bg-gray-100"
+                            className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl h-[56px] px-4 active:bg-gray-100 mb-4"
                         >
-                            <CalendarDaysIcon size={20} color="#9CA3AF" />
-                            <Text className="ml-3 text-secondary text-base font-medium">
+                            <CalendarDaysIcon size={20} color="#F5A9C8" />
+                            <Text className="ml-3 text-secondary text-base font-semibold">
                                 {birthDate.toDateString()}
                             </Text>
                         </TouchableOpacity>
@@ -202,80 +220,66 @@ export const AddCatScreen = () => {
                                 maximumDate={new Date()}
                             />
                         )}
+
+                        <View className="flex-row gap-4 mb-4">
+                            <View className="flex-1"><InputGroup label="Color" value={color} onChangeText={setColor} placeholder="Calico" /></View>
+                            <View className="flex-1"><InputGroup label="Eye Color" value={eyeColor} onChangeText={setEyeColor} placeholder="Green" /></View>
+                        </View>
+
+                        {/* Spayed */}
+                        <Label text="Spayed / Neutered?" />
+                        <View className="flex-row bg-gray-50 p-1.5 rounded-2xl border border-gray-100 h-[58px] mb-4">
+                            <TouchableOpacity onPress={() => setIsSpayed(true)} className={`flex-1 justify-center items-center rounded-xl ${isSpayed ? 'bg-white shadow-sm border border-gray-100' : ''}`}>
+                                <Text className={`font-bold ${isSpayed ? 'text-primary' : 'text-gray-400'}`}>Yes</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setIsSpayed(false)} className={`flex-1 justify-center items-center rounded-xl ${!isSpayed ? 'bg-white shadow-sm border border-gray-100' : ''}`}>
+                                <Text className={`font-bold ${!isSpayed ? 'text-primary' : 'text-gray-400'}`}>No</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <InputGroup label="Identifying Features" value={features} onChangeText={setFeatures} placeholder="White tip on tail..." multiline />
                     </View>
 
-                    <View className="flex-row gap-4">
-                        <View className="flex-1">
-                             <InputGroup label="Color" value={color} onChangeText={setColor} placeholder="Calico" />
-                        </View>
-                        <View className="flex-1">
-                             <InputGroup label="Eye Color" value={eyeColor} onChangeText={setEyeColor} placeholder="Green" />
-                        </View>
-                    </View>
-
+                    {/* Lineage */}
                     <View>
-                        <Text className="text-xs text-gray-500 font-bold ml-1 mb-2 uppercase">Spayed / Neutered?</Text>
-                        <View className="flex-row bg-gray-50 p-1 rounded-2xl border border-gray-200">
-                            <TouchableOpacity onPress={() => setIsSpayed(true)} className={`flex-1 py-3 rounded-xl ${isSpayed ? 'bg-white shadow-sm' : ''}`}>
-                                <Text className={`text-center font-bold text-sm ${isSpayed ? 'text-green-500' : 'text-gray-400'}`}>Yes</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setIsSpayed(false)} className={`flex-1 py-3 rounded-xl ${!isSpayed ? 'bg-white shadow-sm' : ''}`}>
-                                <Text className={`text-center font-bold text-sm ${!isSpayed ? 'text-red-400' : 'text-gray-400'}`}>No</Text>
-                            </TouchableOpacity>
+                        <SectionTitle title="Lineage" />
+                        <View className="flex-col gap-4">
+                            <ParentSelector label="Mother" value={motherId ? cats.find(c => c.id === motherId)?.name : null} onPress={() => openPicker('mother')} />
+                            <ParentSelector label="Father" value={fatherId ? cats.find(c => c.id === fatherId)?.name : null} onPress={() => openPicker('father')} />
                         </View>
                     </View>
-                    
-                    <InputGroup 
-                        label="Identifying Features" 
-                        value={features} 
-                        onChangeText={setFeatures} 
-                        placeholder="e.g. White tip on tail"
-                        multiline={true}
-                    />
-                </View>
 
-                <SectionHeader title="Lineage" />
-                <View className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 gap-4">
-                     <View className="flex-row gap-4">
-                        <ParentSelector label="Mother" value={motherId ? cats.find(c => c.id === motherId)?.name : null} onPress={() => openPicker('mother')} />
-                        <ParentSelector label="Father" value={fatherId ? cats.find(c => c.id === fatherId)?.name : null} onPress={() => openPicker('father')} />
-                     </View>
+                    <View className="mt-4 mb-10">
+                        <Button title="Create Profile" onPress={handleSubmit} loading={isLoading} className="shadow-lg shadow-primary/30" />
+                    </View>
                 </View>
-
-                <Button title="Save Profile" onPress={handleSubmit} loading={isLoading} className="mt-4 mb-10 shadow-lg shadow-primary/30" />
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-      {/* Parent Picker Modal */}
+      {/* Modal */}
       <Modal visible={pickerVisible} animationType="slide" transparent>
-          <View className="flex-1 bg-black/60 justify-end">
-              <View className="bg-gray-50 rounded-t-[35px] h-3/4 overflow-hidden">
-                  <View className="bg-white p-6 border-b border-gray-100 items-center rounded-t-[35px]">
-                      <View className="w-12 h-1.5 bg-gray-200 rounded-full mb-4" />
+          <View className="flex-1 bg-black/50 justify-end">
+              <View className="bg-white rounded-t-[35px] h-3/4 overflow-hidden">
+                  <View className="p-6 border-b border-gray-100 items-center bg-gray-50">
+                      <View className="w-12 h-1.5 bg-gray-300 rounded-full mb-4" />
                       <Text className="text-xl font-bold text-secondary">Select {pickerType === 'mother' ? 'Mother' : 'Father'}</Text>
                   </View>
-                  
-                  <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
-                      <TouchableOpacity onPress={() => { selectParent(''); }} className="bg-white p-4 rounded-2xl mb-3 border border-red-100 flex-row items-center justify-center">
-                          <Text className="text-red-400 font-bold">No Parent / Clear</Text>
+                  <ScrollView contentContainerStyle={{ padding: 20 }}>
+                      <TouchableOpacity onPress={() => selectParent('')} className="bg-white p-4 rounded-2xl mb-3 flex-row justify-center border-2 border-dashed border-gray-300">
+                          <Text className="text-gray-500 font-bold">No Parent / Unknown</Text>
                       </TouchableOpacity>
-                      
-                      {potentialParents.map(cat => (
-                           <TouchableOpacity key={cat.id} onPress={() => selectParent(cat.id)} className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 flex-row items-center shadow-sm">
-                               <Image source={{ uri: cat.photoUrl || 'https://placekitten.com/50/50' }} className="w-14 h-14 rounded-full bg-gray-100 mr-4" />
+                      {potentialParents.map(c => (
+                           <TouchableOpacity key={c.id} onPress={() => selectParent(c.id)} className="bg-white p-3 rounded-2xl mb-3 flex-row items-center border border-gray-100 shadow-sm">
+                               <Image source={{ uri: c.photoUrl || 'https://placekitten.com/50/50' }} className="w-12 h-12 rounded-full mr-4 bg-gray-100" />
                                <View>
-                                   <Text className="text-lg font-bold text-secondary">{cat.name}</Text>
-                                   <Text className="text-sm text-gray-400">{cat.breed} • {cat.gender}</Text>
-                               </View>
+                                   <Text className="text-base font-bold text-secondary">{c.name}</Text>
+                                   <Text className="text-gray-400 text-xs">{c.breed}</Text>
+                                </View>
                            </TouchableOpacity>
                       ))}
-                      {potentialParents.length === 0 && (
-                          <Text className="text-center text-gray-400 mt-10">No eligible {pickerType}s found.</Text>
-                      )}
                   </ScrollView>
-                  <View className="p-6 bg-white border-t border-gray-100">
+                  <View className="p-6 border-t border-gray-100">
                       <Button title="Cancel" onPress={() => setPickerVisible(false)} variant="secondary" />
                   </View>
               </View>
@@ -285,21 +289,25 @@ export const AddCatScreen = () => {
   );
 };
 
-// --- Reusable Components for Consistency ---
+// --- Standardized Components ---
 
-const SectionHeader = ({ title }: { title: string }) => (
-    <Text className="text-lg font-extrabold text-secondary ml-2 tracking-tight opacity-80">{title}</Text>
+const SectionTitle = ({ title }: { title: string }) => (
+    <Text className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-4 ml-1 mt-2">{title}</Text>
+);
+
+const Label = ({ text }: { text: string }) => (
+    <Text className="text-xs font-bold text-gray-500 mb-2 ml-1 uppercase">{text}</Text>
 );
 
 const InputGroup = ({ label, value, onChangeText, placeholder, keyboardType, multiline }: any) => (
-    <View>
-        <Text className="text-xs text-gray-500 font-bold ml-1 mb-1.5 uppercase">{label}</Text>
+    <View className="w-full">
+        <Label text={label} />
         <TextInput 
-            className={`bg-gray-50 border border-gray-200 rounded-2xl px-5 text-base text-secondary font-medium ${multiline ? 'h-28 py-4' : 'h-14'}`}
-            placeholder={placeholder} 
-            placeholderTextColor="#D1D5DB"
+            className={`bg-gray-50 border border-gray-100 rounded-2xl px-4 text-base text-secondary font-medium ${multiline ? 'h-28 py-4 leading-5' : 'h-[56px]'}`}
             value={value} 
             onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor="#D1D5DB"
             keyboardType={keyboardType}
             multiline={multiline}
             textAlignVertical={multiline ? 'top' : 'center'}
@@ -308,9 +316,12 @@ const InputGroup = ({ label, value, onChangeText, placeholder, keyboardType, mul
 );
 
 const ParentSelector = ({ label, value, onPress }: any) => (
-    <View className="flex-1">
-         <Text className="text-xs text-gray-500 mb-1.5 font-bold uppercase ml-1">{label}</Text>
-         <TouchableOpacity onPress={onPress} className="bg-gray-50 border border-gray-200 rounded-2xl h-14 justify-center px-4 active:bg-gray-100">
+    <View className="w-full">
+         <Label text={label} />
+         <TouchableOpacity 
+            onPress={onPress} 
+            className="bg-gray-50 border border-gray-100 rounded-2xl h-[56px] justify-center px-4 active:bg-gray-100"
+         >
             <Text className={`text-base font-semibold ${value ? 'text-primary' : 'text-gray-300'}`} numberOfLines={1}>
                  {value || 'Select'}
             </Text>

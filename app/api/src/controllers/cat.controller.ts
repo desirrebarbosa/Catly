@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
+import { AuthRequest } from '../middleware/auth';
 
 // --- Helper: Auto-Archive Logic ---
 export const runAutoArchive = async () => {
@@ -27,7 +28,11 @@ export const runAutoArchive = async () => {
 
 export const getCats = async (req: any, res: any) => {
   try {
+    const userId = req.userId;
+    
+    // Strict isolation: only fetch cats owned by this user
     const cats = await prisma.cat.findMany({
+      where: { ownerId: userId },
       orderBy: { createdAt: 'desc' }
     });
     res.json({ success: true, data: { cats } });
@@ -40,9 +45,14 @@ export const getCats = async (req: any, res: any) => {
 export const getCatById = async (req: any, res: any) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
     
-    const cat = await prisma.cat.findUnique({
-      where: { id },
+    // Strict isolation
+    const cat = await prisma.cat.findFirst({
+      where: { 
+        id,
+        ownerId: userId 
+      },
       include: {
         mother: true,
         father: true,
@@ -67,14 +77,20 @@ export const createCat = async (req: any, res: any) => {
         motherId, fatherId, photoUrl 
     } = req.body;
     
-    const owner = await prisma.user.findFirst();
-    if (!owner) {
-        return res.status(400).json({ success: false, error: 'No user exists. Run seeds first.' });
+    const userId = req.userId;
+    if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    // Determine photo URL
+    let finalPhotoUrl = photoUrl;
+    if (!finalPhotoUrl) {
+        finalPhotoUrl = gender === 'Female' ? 'https://placekitten.com/200/200' : 'https://placekitten.com/201/201';
     }
 
     const newCat = await prisma.cat.create({
       data: {
-        ownerId: owner.id,
+        ownerId: userId, // Enforce ownership
         name,
         nickname,
         breed,
@@ -88,7 +104,7 @@ export const createCat = async (req: any, res: any) => {
         isArchived: false,
         motherId: motherId || null,
         fatherId: fatherId || null,
-        photoUrl: photoUrl || (gender === 'Female' ? 'https://placekitten.com/200/200' : 'https://placekitten.com/201/201')
+        photoUrl: finalPhotoUrl
       }
     });
     
@@ -102,11 +118,21 @@ export const createCat = async (req: any, res: any) => {
 export const updateCat = async (req: any, res: any) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
     const { 
-        name, nickname, breed, weight, birthDate, 
-        color, eyeColor, features, isArchived, 
+        name, nickname, breed, gender, weight, birthDate, 
+        color, eyeColor, features, isSpayed, isArchived, 
         motherId, fatherId, photoUrl 
     } = req.body;
+
+    // Check ownership before update
+    const existingCat = await prisma.cat.findFirst({
+      where: { id, ownerId: userId }
+    });
+
+    if (!existingCat) {
+      return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
+    }
 
     const updatedCat = await prisma.cat.update({
       where: { id },
@@ -114,15 +140,17 @@ export const updateCat = async (req: any, res: any) => {
         name,
         nickname,
         breed,
+        gender,
         weight: weight !== undefined ? Number(weight) : undefined,
         birthDate: birthDate ? new Date(birthDate) : undefined,
         color,
         eyeColor,
         features,
+        isSpayed,
         isArchived,
         motherId: motherId || null,
         fatherId: fatherId || null,
-        photoUrl: photoUrl || undefined // Only update if provided
+        photoUrl: photoUrl || undefined
       }
     });
 
@@ -136,6 +164,17 @@ export const updateCat = async (req: any, res: any) => {
 export const deleteCat = async (req: any, res: any) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+
+    // Check ownership before delete
+    const existingCat = await prisma.cat.findFirst({
+      where: { id, ownerId: userId }
+    });
+
+    if (!existingCat) {
+      return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
+    }
+
     await prisma.healthEvent.deleteMany({ where: { catId: id } });
     await prisma.cat.delete({ where: { id } });
     res.json({ success: true, message: 'Cat deleted' });
@@ -148,8 +187,18 @@ export const deleteCat = async (req: any, res: any) => {
 export const addHealthEvent = async (req: any, res: any) => {
   try {
     const { catId } = req.params;
+    const userId = req.userId;
     const { title, eventType, notes, diagnosis, date } = req.body;
     
+    // Check ownership
+    const cat = await prisma.cat.findFirst({
+      where: { id: catId, ownerId: userId }
+    });
+
+    if (!cat) {
+      return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
+    }
+
     const newEvent = await prisma.healthEvent.create({
       data: {
         catId,
@@ -176,6 +225,17 @@ export const addHealthEvent = async (req: any, res: any) => {
 export const getHealthEvents = async (req: any, res: any) => {
   try {
     const { catId } = req.params;
+    const userId = req.userId;
+
+    // Check ownership
+    const cat = await prisma.cat.findFirst({
+      where: { id: catId, ownerId: userId }
+    });
+
+    if (!cat) {
+      return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
+    }
+
     const events = await prisma.healthEvent.findMany({
       where: { catId },
       orderBy: { date: 'desc' }
