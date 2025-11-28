@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View as RNView, Text as RNText, FlatList, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
 
 const View = RNView as any;
@@ -10,6 +12,7 @@ const TouchableOpacity = RNTouchableOpacity as any;
 export const HealthLogScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { catId, catName } = route.params;
   const [events, setEvents] = useState([]);
 
@@ -38,16 +41,19 @@ export const HealthLogScreen = () => {
 
   return (
     <View className="flex-1 bg-primary">
-      <View className="pt-14 pb-4 px-5 flex-row justify-between items-center">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/20 p-2 rounded-lg">
-           <Text className="text-white font-bold">←</Text>
+      <View 
+        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }} 
+        className="px-5 flex-row justify-between items-center"
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/20 p-2 rounded-xl">
+           <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">{catName}'s Health</Text>
         <TouchableOpacity 
-           className="bg-white w-9 h-9 rounded-full justify-center items-center"
+           className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-sm"
            onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
         >
-           <Text className="text-primary text-xl font-bold">+</Text>
+           <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
         </TouchableOpacity>
       </View>
 

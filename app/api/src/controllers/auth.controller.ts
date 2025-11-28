@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config/env';
 
 export const signup = async (req: any, res: any) => {
   try {
@@ -13,21 +16,25 @@ export const signup = async (req: any, res: any) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    // In a production app, password should be hashed here (e.g. using bcrypt)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const newUser = await prisma.user.create({
       data: {
         email,
-        password, // Store hashed password in real app
+        password: hashedPassword,
         name,
         phone: '',
         about: '',
       },
     });
     
+    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: '30d' });
+
     res.status(201).json({ 
       success: true, 
       data: { 
-        token: `jwt-token-${newUser.id}`, // Integrate real JWT generation here
+        token,
         user: { id: newUser.id, name: newUser.name, email: newUser.email } 
       } 
     });
@@ -45,19 +52,27 @@ export const login = async (req: any, res: any) => {
       where: { email },
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({ 
       success: true, 
       data: { 
-        token: `jwt-token-${user.id}`, 
+        token, 
         user: { 
           id: user.id, 
           name: user.name, 
           email: user.email,
-          phone: user.phone || '', // Handle nullable fields
+          phone: user.phone || '', 
           about: user.about || '' 
         } 
       } 
@@ -70,15 +85,23 @@ export const login = async (req: any, res: any) => {
 
 export const getProfile = async (req: any, res: any) => {
   try {
-    // In a real app, you would get the ID from req.user.id (middleware)
-    // For now, we fetch the first user found or a specific demo user
-    const user = await prisma.user.findFirst();
+    const userId = req.userId; // Securely obtained from middleware
+
+    if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
     
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    res.json({ success: true, data: { user } });
+    const { password, ...userData } = user;
+
+    res.json({ success: true, data: { user: userData } });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch profile' });
   }
@@ -86,27 +109,26 @@ export const getProfile = async (req: any, res: any) => {
 
 export const updateProfile = async (req: any, res: any) => {
   try {
+    const userId = req.userId;
     const { name, phone, about } = req.body;
     
-    // In a real app, use req.user.id
-    const currentUser = await prisma.user.findFirst();
-
-    if (!currentUser) {
-       return res.status(404).json({ success: false, error: 'User context missing' });
+    if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
     
     const updatedUser = await prisma.user.update({
-      where: { id: currentUser.id },
+      where: { id: userId },
       data: { name, phone, about },
     });
     
-    res.json({ success: true, message: 'Profile updated', data: { user: updatedUser } });
+    const { password, ...userData } = updatedUser;
+    
+    res.json({ success: true, message: 'Profile updated', data: { user: userData } });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Update failed' });
   }
 };
 
 export const requestPasswordReset = async (req: any, res: any) => {
-  // Real implementation would check DB and send email via SMTP/SendGrid
   res.json({ success: true, message: 'If an account exists, instructions have been sent.' });
 };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View as RNView, Text as RNText, Image as RNImage, ActivityIndicator as RNActivityIndicator, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
 
 const View = RNView as any;
@@ -12,6 +14,7 @@ const ActivityIndicator = RNActivityIndicator as any;
 export const FamilyTreeScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { catId } = route.params;
   const [data, setData] = useState<any>(null);
 
@@ -35,9 +38,14 @@ export const FamilyTreeScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="pt-14 px-5 pb-4 border-b border-gray-100 flex-row items-center">
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text className="text-primary font-bold text-lg">Back</Text></TouchableOpacity>
-        <Text className="flex-1 text-center text-xl font-bold text-gray-800 mr-10">Family Tree</Text>
+      <View 
+        style={{ paddingTop: insets.top + 10, paddingBottom: 16 }} 
+        className="px-5 border-b border-gray-100 flex-row items-center bg-white z-10"
+      >
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
+             <ChevronLeftIcon size={24} color="#F5A9C8" strokeWidth={2.5} />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold text-gray-800">Family Tree</Text>
       </View>
       
       <View className="items-center pt-10">

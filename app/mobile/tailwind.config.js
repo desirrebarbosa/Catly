@@ -9,11 +9,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#F5A9C8',
-        primaryDark: '#E089A8',
-        secondary: '#2E3E5C',
-        inputBg: '#F9F9F9',
+        primary: '#F5A9C8', // Soft Pink from PDF
+        primaryDark: '#E680A6',
+        primaryLight: '#FCE7F0',
+        secondary: '#4A4A4A', // Dark Gray text
+        secondaryLight: '#9CA3AF', // Light gray text
+        background: '#FFFFFF',
+        card: '#FFFFFF',
+        inputBg: '#FAFAFA',
       },
+      borderRadius: {
+        '4xl': '32px',
+      }
     },
   },
   plugins: [],
