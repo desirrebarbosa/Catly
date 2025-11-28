@@ -7,7 +7,8 @@
     "dev": "nodemon src/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "test:diagnose": "ts-node src/tests/integration.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

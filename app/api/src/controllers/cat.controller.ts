@@ -1,3 +1,4 @@
+
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthRequest } from '../middleware/auth';
@@ -29,13 +30,16 @@ export const runAutoArchive = async () => {
 export const getCats = async (req: any, res: any) => {
   try {
     const userId = req.userId;
+    console.log(`Fetching cats for user: ${userId}`);
     
     // Strict isolation: only fetch cats owned by this user
     const cats = await prisma.cat.findMany({
       where: { ownerId: userId },
       orderBy: { createdAt: 'desc' }
     });
-    res.json({ success: true, data: { cats } });
+
+    console.log(`Found ${cats.length} cats for user ${userId}`);
+    res.json({ success: true, data: { cats: cats || [] } });
   } catch (error) {
     console.error("Get Cats Error:", error);
     res.status(500).json({ success: false, error: 'Failed to fetch cats' });
@@ -101,13 +105,14 @@ export const createCat = async (req: any, res: any) => {
         eyeColor,
         features,
         isSpayed,
-        isArchived: false,
+        isArchived: false, // Explicitly set to false
         motherId: motherId || null,
         fatherId: fatherId || null,
         photoUrl: finalPhotoUrl
       }
     });
     
+    console.log(`Created new cat: ${newCat.name} (ID: ${newCat.id}) for user ${userId}`);
     res.status(201).json({ success: true, data: { cat: newCat } });
   } catch (error) {
     console.error("Create Cat Error:", error);
@@ -243,5 +248,27 @@ export const getHealthEvents = async (req: any, res: any) => {
     res.json({ success: true, data: { events } });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch events' });
+  }
+};
+
+export const deleteHealthEvent = async (req: any, res: any) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.userId;
+
+    // Verify ownership via nested query
+    const event = await prisma.healthEvent.findUnique({
+      where: { id: eventId },
+      include: { cat: true }
+    });
+
+    if (!event || event.cat.ownerId !== userId) {
+        return res.status(404).json({ success: false, error: 'Event not found or unauthorized' });
+    }
+
+    await prisma.healthEvent.delete({ where: { id: eventId } });
+    res.json({ success: true, message: 'Event deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Delete failed' });
   }
 };

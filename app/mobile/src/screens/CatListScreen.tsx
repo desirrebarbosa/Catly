@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View as RNView, Text as RNText, FlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+
+import React, { useState, useCallback } from 'react';
+import { View as RNView, Text as RNText, FlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput, RefreshControl } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MagnifyingGlassIcon, PlusIcon } from 'react-native-heroicons/outline';
 import { useAuth } from '../context/AuthContext';
@@ -14,25 +15,46 @@ const TextInput = RNTextInput as any;
 
 export const CatListScreen = () => {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets(); // Hook for safe area
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { cats, fetchCats, isLoading } = useCats();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchCats();
-  }, []);
+  // Force fetch every time screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchCats();
+    }, [fetchCats])
+  );
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchCats();
+    setIsRefreshing(false);
+  };
 
   const filteredCats = cats.filter(cat => {
     const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = showArchived ? cat.isArchived : !cat.isArchived;
+    // Handle null/undefined isArchived by defaulting to false
+    const isCatArchived = !!cat.isArchived;
+    const matchesStatus = showArchived ? isCatArchived : !isCatArchived;
     return matchesSearch && matchesStatus;
   });
 
-  const calculateAge = (createdAt: string) => {
-      // Placeholder logic until DOB is implemented fully
-      return "2 years old"; 
+  const calculateAge = (birthDate: string) => {
+      if (!birthDate) return 'Age unknown';
+      const birth = new Date(birthDate);
+      const now = new Date();
+      let years = now.getFullYear() - birth.getFullYear();
+      let months = now.getMonth() - birth.getMonth();
+      if (months < 0) {
+          years--;
+          months += 12;
+      }
+      if (years === 0) return `${months} months old`;
+      return `${years} years old`;
   };
 
   const renderCatItem = ({ item }: { item: any }) => (
@@ -41,7 +63,7 @@ export const CatListScreen = () => {
       onPress={() => navigation.navigate('CatDetails', { catId: item.id })}
       style={{ elevation: 2 }}
     >
-      <View className="w-20 h-20 rounded-full border-2 border-primary/20 p-0.5">
+      <View className="w-20 h-20 rounded-full border-2 border-primary/20 p-0.5 bg-gray-50">
           <Image 
             source={{ uri: item.photoUrl || 'https://placekitten.com/200/200' }} 
             className="w-full h-full rounded-full" 
@@ -59,9 +81,9 @@ export const CatListScreen = () => {
              </View>
         </View>
         
-        <Text className="text-secondaryLight text-sm font-medium mb-0.5">Age: {calculateAge(item.createdAt)}</Text>
+        <Text className="text-secondaryLight text-sm font-medium mb-0.5">{calculateAge(item.birthDate)}</Text>
         <Text className="text-secondaryLight text-sm font-medium">
-            {item.gender} • {item.breed || 'Unknown'}
+            {item.gender} • {item.breed || 'Unknown Breed'}
         </Text>
       </View>
     </TouchableOpacity>
@@ -69,7 +91,7 @@ export const CatListScreen = () => {
 
   return (
     <View className="flex-1 bg-primary">
-      {/* Header Section with Safe Area */}
+      {/* Header Section */}
       <View 
         style={{ paddingTop: insets.top + 10, paddingBottom: 24 }} 
         className="px-6 bg-primary"
@@ -80,11 +102,10 @@ export const CatListScreen = () => {
                     Hello, {user?.name?.split(' ')[0] || 'Friend'}!
                 </Text>
                 <Text className="text-white/90 text-sm font-medium mt-1">
-                    Every day is a purr-fect day to care!
+                    You have {cats.filter(c => !c.isArchived).length} active cats.
                 </Text>
             </View>
              
-             {/* Add Button */}
              <TouchableOpacity 
                 className="bg-white p-3 rounded-2xl shadow-sm active:opacity-90"
                 onPress={() => navigation.navigate('AddCat')}
@@ -95,7 +116,6 @@ export const CatListScreen = () => {
 
         {/* Search & Filter Row */}
         <View className="flex-row gap-3 h-14">
-            {/* Search Input */}
             <View className="flex-1 bg-white rounded-2xl flex-row items-center px-4 shadow-sm">
                 <MagnifyingGlassIcon size={20} color="#9CA3AF" />
                 <TextInput 
@@ -107,7 +127,6 @@ export const CatListScreen = () => {
                 />
             </View>
 
-            {/* Toggle Switch (Pill Shape) */}
             <View className="bg-white/30 rounded-2xl p-1 flex-row items-center border border-white/40">
                 <TouchableOpacity 
                     onPress={() => setShowArchived(false)}
@@ -127,32 +146,33 @@ export const CatListScreen = () => {
 
       {/* List Container */}
       <View className="flex-1 bg-background rounded-t-[30px] px-6 pt-8 overflow-hidden shadow-2xl">
-        {isLoading && cats.length === 0 ? (
+        {isLoading && !isRefreshing && cats.length === 0 ? (
             <View className="flex-1 justify-center items-center">
                 <ActivityIndicator size="large" color="#F5A9C8" />
             </View>
         ) : (
             <FlatList
-            data={filteredCats}
-            keyExtractor={(item) => item.id}
-            renderItem={renderCatItem}
-            contentContainerStyle={{ paddingBottom: 80 }}
-            refreshing={isLoading}
-            onRefresh={fetchCats}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-                <View className="items-center mt-20 px-10 opacity-60">
-                    <Text className="text-6xl mb-4"></Text>
-                    <Text className="text-secondary text-xl font-bold mb-2">No cats here.</Text>
-                    <Text className="text-secondaryLight text-center leading-5">
-                        {searchQuery 
-                            ? "No matches found for your search." 
-                            : showArchived 
-                                ? "No archived profiles." 
-                                : "Tap '+' to create a profile for your furry friend."}
-                    </Text>
-                </View>
-            }
+                data={filteredCats}
+                extraData={cats}
+                keyExtractor={(item) => item.id}
+                renderItem={renderCatItem}
+                contentContainerStyle={{ paddingBottom: 80 }}
+                refreshControl={
+                    <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#F5A9C8" />
+                }
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                    <View className="items-center mt-20 px-10 opacity-60">
+                        <Text className="text-secondary text-xl font-bold mb-2">No cats found.</Text>
+                        <Text className="text-secondaryLight text-center leading-5">
+                            {searchQuery 
+                                ? "No matches found for your search." 
+                                : showArchived 
+                                    ? "No archived profiles." 
+                                    : "Tap '+' to create a profile for your furry friend."}
+                        </Text>
+                    </View>
+                }
             />
         )}
       </View>

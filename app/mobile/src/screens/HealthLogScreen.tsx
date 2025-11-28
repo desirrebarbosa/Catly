@@ -1,69 +1,168 @@
-import React, { useEffect, useState } from 'react';
-import { View as RNView, Text as RNText, FlatList, TouchableOpacity as RNTouchableOpacity } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View as RNView, Text as RNText, FlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator } from 'react-native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, PlusIcon, TrashIcon } from 'react-native-heroicons/outline';
+import { 
+  HeartIcon, 
+  BeakerIcon, 
+  ClipboardDocumentCheckIcon, 
+  ScissorsIcon, 
+  ExclamationTriangleIcon,
+  SparklesIcon
+} from 'react-native-heroicons/solid';
 import api from '../services/api';
 
 const View = RNView as any;
 const Text = RNText as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const ActivityIndicator = RNActivityIndicator as any;
 
 export const HealthLogScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { catId, catName } = route.params;
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      const res = await api.get(`/cats/${catId}/health`);
-      if (res.success) setEvents(res.data.events);
-    };
-    load();
-    const unsub = navigation.addListener('focus', load);
-    return unsub;
-  }, [catId, navigation]);
+  const fetchEvents = async () => {
+    setLoading(true);
+    const res = await api.get(`/cats/${catId}/health`);
+    if (res.success) setEvents(res.data.events);
+    setLoading(false);
+  };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm flex-row items-center">
-      <View className="flex-1">
-        <Text className="text-xs text-gray-400 font-bold mb-1">{new Date(item.date).toDateString()}</Text>
-        <Text className="text-base font-bold text-secondary mb-1">{item.title}</Text>
-        <Text className="text-gray-500 text-sm" numberOfLines={1}>{item.diagnosis === 'Symptomatic' ? '⚠️ Symptomatic' : 'Routine'}</Text>
-      </View>
-      <View className="bg-pink-50 px-3 py-1 rounded-lg">
-        <Text className="text-primary text-xs font-bold uppercase">{item.eventType}</Text>
-      </View>
-    </View>
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [catId])
   );
 
+  const handleDelete = (eventId: string) => {
+    Alert.alert("Delete Record", "Are you sure you want to remove this health event?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: async () => {
+            await api.delete(`/cats/health/${eventId}`);
+            fetchEvents();
+        }}
+    ]);
+  };
+
+  const getEventMeta = (type: string) => {
+      switch(type) {
+          case 'Vaccination': 
+            return { icon: <BeakerIcon size={18} color="white" />, color: 'bg-green-400', border: 'border-green-100' };
+          case 'Illness': 
+            return { icon: <ExclamationTriangleIcon size={18} color="white" />, color: 'bg-red-400', border: 'border-red-100' };
+          case 'Checkup': 
+            return { icon: <ClipboardDocumentCheckIcon size={18} color="white" />, color: 'bg-blue-400', border: 'border-blue-100' };
+          case 'Surgery': 
+            return { icon: <ScissorsIcon size={18} color="white" />, color: 'bg-pink-500', border: 'border-pink-100' };
+          case 'Medication': 
+            return { icon: <SparklesIcon size={18} color="white" />, color: 'bg-purple-400', border: 'border-purple-100' };
+          default: 
+            return { icon: <HeartIcon size={18} color="white" />, color: 'bg-gray-400', border: 'border-gray-100' };
+      }
+  };
+
+  const renderItem = ({ item, index }: { item: any, index: number }) => {
+    const isLast = index === events.length - 1;
+    const meta = getEventMeta(item.eventType);
+    const dateObj = new Date(item.date);
+    
+    return (
+        <View className="flex-row px-6">
+            {/* Timeline Left */}
+            <View className="items-center mr-4 w-8">
+                <View className={`w-8 h-8 rounded-full items-center justify-center shadow-sm z-10 ${meta.color}`}>
+                    {meta.icon}
+                </View>
+                {!isLast && <View className="w-0.5 flex-1 bg-gray-200 my-1" />}
+            </View>
+
+            {/* Content Card */}
+            <View className="flex-1 pb-6">
+                <View className={`bg-white p-4 rounded-2xl border shadow-sm ${meta.border}`}>
+                    <View className="flex-row justify-between items-start mb-1">
+                        <View className="flex-1 mr-2">
+                             <Text className="text-secondary font-bold text-lg">{item.title}</Text>
+                             <Text className="text-gray-400 text-xs font-bold uppercase tracking-wide mb-2">
+                                {dateObj.toDateString()}
+                             </Text>
+                        </View>
+                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50">
+                            <TrashIcon size={18} color="#9CA3AF" />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    {/* Event Type Badge */}
+                    <View className="flex-row mb-3">
+                         <View className={`${meta.color} px-2 py-0.5 rounded-md opacity-90`}>
+                             <Text className="text-white text-[10px] font-bold uppercase">{item.eventType}</Text>
+                         </View>
+                    </View>
+
+                    {item.diagnosis && (
+                        <View className="bg-gray-50 px-3 py-2 rounded-xl mb-2">
+                            <Text className="text-secondary text-sm font-semibold">Diagnosis: {item.diagnosis}</Text>
+                        </View>
+                    )}
+                    
+                    {item.notes ? (
+                        <Text className="text-gray-500 leading-5 text-sm">{item.notes}</Text>
+                    ) : null}
+                </View>
+            </View>
+        </View>
+    );
+  };
+
   return (
-    <View className="flex-1 bg-primary">
+    <View className="flex-1 bg-white">
       <View 
-        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }} 
-        className="px-5 flex-row justify-between items-center"
+        style={{ paddingTop: insets.top, height: insets.top + 70 }} 
+        className="px-6 flex-row items-center justify-between bg-primary z-20"
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/20 p-2 rounded-xl">
-           <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">{catName}'s Health</Text>
         <TouchableOpacity 
-           className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-sm"
+           onPress={() => navigation.goBack()} 
+           className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+        >
+           <ChevronLeftIcon size={24} color="white" />
+        </TouchableOpacity>
+        <View className="items-center">
+            <Text className="text-white text-lg font-bold">Health Timeline</Text>
+            <Text className="text-white/80 text-xs font-medium">{catName}</Text>
+        </View>
+        <TouchableOpacity 
+           className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-lg shadow-black/10"
            onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
         >
            <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 bg-gray-50 rounded-t-[30px] p-6">
-        <FlatList
-          data={events}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ListEmptyComponent={<Text className="text-center text-gray-400 mt-10">No records found.</Text>}
-        />
+      <View className="flex-1 bg-gray-50 pt-8">
+        {loading ? (
+             <ActivityIndicator size="large" color="#F5A9C8" className="mt-10" />
+        ) : (
+            <FlatList
+            data={events}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+                <View className="items-center justify-center mt-20 opacity-50 px-10">
+                    <ClipboardDocumentCheckIcon size={60} color="#D1D5DB" />
+                    <Text className="text-gray-400 font-bold text-lg mt-4 text-center">No health records yet.</Text>
+                    <Text className="text-gray-400 text-sm text-center leading-5 mt-1">
+                        Keep track of vaccinations, checkups, and more by tapping the + button.
+                    </Text>
+                </View>
+            }
+            />
+        )}
       </View>
     </View>
   );
