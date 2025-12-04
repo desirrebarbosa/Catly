@@ -1,7 +1,7 @@
 
 import { PORT } from '../config/env';
 
-const BASE_URL = `http://192.168.1.169:${PORT}/api`;
+const BASE_URL = `http://localhost:${PORT}/api`;
 
 const C = {
   GREEN: '\x1b[32m',
@@ -65,12 +65,13 @@ const runTest = async () => {
     const email = `rtm_user_${Date.now()}@catly.com`;
     
     // RTM 1: Signup
-    const signup = await post('/auth/signup', { email, password: 'password123', name: 'RTM Tester' });
-    if (!signup.success) throw new Error('Signup failed');
+    // Updated password to meet strict requirements (8+ chars, 1 Upper, 1 Number)
+    const signup = await post('/auth/signup', { email, password: 'Password123', name: 'RTM Tester' });
+    if (!signup.success) throw new Error(`Signup failed: ${signup.error}`);
     printPass('User Registration (RTM 1)');
     
     // RTM 2: Login
-    const login = await post('/auth/login', { email, password: 'password123' });
+    const login = await post('/auth/login', { email, password: 'Password123' });
     if (!login.success) throw new Error('Login failed');
     token = login.data.token;
     userId = login.data.user.id;
@@ -126,7 +127,8 @@ const runTest = async () => {
     printHeader("RTM 29-35: Scheduling");
 
     // RTM 30: Create Schedule
-    const addSched = await post('/schedules', { taskName: 'Meds', time: '10:00 AM', recurrence: 'Daily' }, token);
+    // Now requires catId
+    const addSched = await post('/schedules', { catId, taskName: 'Meds', time: '10:00 AM', recurrence: 'Daily' }, token);
     if (!addSched.success) throw new Error('Add Schedule failed');
     scheduleId = addSched.data.schedule.id;
     printPass('Create Schedule (RTM 30)');
@@ -172,7 +174,7 @@ const runTest = async () => {
   } catch (error: any) {
     console.log(`\n${C.RED}${C.BOLD}❌ RTM VALIDATION FAILED${C.RESET}`);
     printFail(error.message || error);
-    process.exit(1);
+    (process as any).exit(1);
   }
 };
 

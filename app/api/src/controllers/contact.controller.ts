@@ -28,10 +28,20 @@ export const getContacts = async (req: any, res: any) => {
     const userId = req.userId;
     const contacts = await prisma.contact.findMany({
       where: { ownerId: userId },
+      include: {
+        adoptions: {
+            select: {
+                cat: {
+                    select: { name: true }
+                }
+            }
+        }
+      },
       orderBy: { name: 'asc' }
     });
     res.json({ success: true, data: { contacts } });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Failed to fetch contacts' });
   }
 };

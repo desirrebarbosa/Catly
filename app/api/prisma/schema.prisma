@@ -15,10 +15,11 @@ model User {
   name      String
   phone     String?
   about     String?
-  photoUrl  String?  // Added for Profile Picture
+  photoUrl  String?  // Profile Picture
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relationships
   cats      Cat[]
   schedules Schedule[]
   contacts  Contact[]
@@ -62,6 +63,8 @@ model Cat {
   litters      Litter[]      @relation("MotherLitters")
   // Litters where this cat is the father
   littersSired Litter[]      @relation("FatherLitters")
+  
+  schedules    Schedule[]
 }
 
 model HealthEvent {
@@ -80,6 +83,8 @@ model Schedule {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catId      String
+  cat        Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
   taskName   String
   time       String
   recurrence String   // Daily, Weekly, Monthly
@@ -95,6 +100,8 @@ model Contact {
   phone     String?
   email     String?
   createdAt DateTime @default(now())
+  
+  adoptions AdoptionRecord[] // Back relation to see who adopted which cat
 }
 
 model AdoptionRecord {
@@ -103,7 +110,14 @@ model AdoptionRecord {
   cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
   date        DateTime
   type        String   // Adoption, Transfer, Rehoming
-  adopterName String?
+  
+  // Snapshots for historical accuracy
+  adopterName String? 
+  
+  // Link to Contact module (Optional, but recommended)
+  contactId   String?
+  contact     Contact? @relation(fields: [contactId], references: [id])
+  
   notes       String?
   createdAt   DateTime @default(now())
 }

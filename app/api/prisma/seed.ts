@@ -6,20 +6,17 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   try {
-    // 1. Create User with Hashed Password
+    // 1. Create User
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('password123', salt);
 
     const user = await prisma.user.upsert({
       where: { email: 'admin@catly.com' },
       update: {
-        // Force update password and details to ensure they match what we expect
         password: hashedPassword,
         name: 'Beatrice Abadiano',
         phone: '09171234567',
         about: 'Cat lover and breeder. Every day is a purr-fect day to care!',
-        // We do not overwrite createdAt, ensuring legacy data stays if needed, 
-        // but we ensure auth credentials are fresh.
       },
       create: {
         email: 'admin@catly.com',
@@ -30,9 +27,9 @@ async function main() {
       },
     });
 
-    console.log(`👤 User synced: ${user.name} (Password: password123)`);
+    console.log(`👤 User synced: ${user.name}`);
 
-    // 2. Create Contacts (RTM 40)
+    // 2. Create Contacts
     await prisma.contact.create({
       data: {
         ownerId: user.id,
@@ -42,28 +39,8 @@ async function main() {
         email: 'dr.smith@vetclinic.com'
       }
     });
-    console.log('📞 Contacts created');
 
-    // 3. Create Schedules (RTM 30)
-    await prisma.schedule.create({
-      data: {
-        userId: user.id,
-        taskName: 'Morning Feeding',
-        time: '08:00 AM',
-        recurrence: 'Daily'
-      }
-    });
-    await prisma.schedule.create({
-      data: {
-        userId: user.id,
-        taskName: 'Flea Prevention',
-        time: '09:00 AM',
-        recurrence: 'Monthly'
-      }
-    });
-    console.log('📅 Schedules created');
-
-    // 4. Create Parent Cats (Dam & Sire)
+    // 4. Create Parent Cats (Created before schedules so we can link them)
     const luna = await prisma.cat.create({
       data: {
         ownerId: user.id,
@@ -102,7 +79,28 @@ async function main() {
 
     console.log(`🐱 Parents created: ${luna.name} & ${simba.name}`);
 
-    // 5. Adoption Record (RTM 37)
+    // 3. Create Schedules (Now linked to Luna)
+    await prisma.schedule.create({
+      data: {
+        userId: user.id,
+        catId: luna.id,
+        taskName: 'Morning Feeding',
+        time: '08:00 AM',
+        recurrence: 'Daily'
+      }
+    });
+    await prisma.schedule.create({
+      data: {
+        userId: user.id,
+        catId: luna.id,
+        taskName: 'Flea Prevention',
+        time: '09:00 AM',
+        recurrence: 'Monthly'
+      }
+    });
+    console.log('📅 Schedules created');
+
+    // 5. Adoption Record
     await prisma.adoptionRecord.create({
       data: {
         catId: luna.id,
@@ -112,9 +110,8 @@ async function main() {
         notes: 'Adopted from City Shelter. Microchipped.'
       }
     });
-    console.log('🏠 Adoption record created');
 
-    // 6. Litter Record (RTM 23)
+    // 6. Litter Record
     await prisma.litter.create({
       data: {
         motherId: luna.id,
@@ -124,9 +121,8 @@ async function main() {
         notes: 'First litter. All healthy.'
       }
     });
-    console.log('🐈 Litter record created');
 
-    // 7. Create Offspring (linked to parents)
+    // 7. Create Offspring
     const nala = await prisma.cat.create({
       data: {
         ownerId: user.id,
@@ -166,8 +162,6 @@ async function main() {
         fatherId: simba.id,
       },
     });
-
-    console.log(`🍼 Kittens created: ${nala.name} & ${tiger.name}`);
 
     // 8. Create Health Events
     await prisma.healthEvent.create({

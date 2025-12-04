@@ -5,14 +5,21 @@ import { prisma } from '../config/db';
 export const createSchedule = async (req: any, res: any) => {
   try {
     const userId = req.userId;
-    const { taskName, time, recurrence } = req.body;
+    const { catId, taskName, time, recurrence } = req.body;
+
+    if (!catId) return res.status(400).json({ success: false, error: 'Cat is required for schedule' });
+
+    // Verify ownership of cat
+    const cat = await prisma.cat.findFirst({ where: { id: catId, ownerId: userId } });
+    if (!cat) return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
 
     const newSchedule = await prisma.schedule.create({
       data: {
         userId,
+        catId,
         taskName,
         time,
-        recurrence // e.g., 'Daily', 'Weekly'
+        recurrence
       }
     });
 
@@ -28,6 +35,11 @@ export const getSchedules = async (req: any, res: any) => {
     const userId = req.userId;
     const schedules = await prisma.schedule.findMany({
       where: { userId },
+      include: {
+        cat: {
+            select: { name: true, photoUrl: true }
+        }
+      },
       orderBy: { time: 'asc' }
     });
     res.json({ success: true, data: { schedules } });
