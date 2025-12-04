@@ -1,7 +1,7 @@
 
 import { PORT } from '../config/env';
 
-const BASE_URL = `http://localhost:${PORT}/api`;
+const BASE_URL = `http://192.168.1.169:${PORT}/api`;
 
 const C = {
   GREEN: '\x1b[32m',
