@@ -30,7 +30,8 @@ export const runAutoArchive = async () => {
 export const getCats = async (req: any, res: any) => {
   try {
     const userId = req.userId;
-    console.log(`Fetching cats for user: ${userId}`);
+    // Log for debugging
+    console.log(`[API] Fetching cats for user: ${userId}`);
     
     // Strict isolation: only fetch cats owned by this user
     const cats = await prisma.cat.findMany({
@@ -38,7 +39,7 @@ export const getCats = async (req: any, res: any) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    console.log(`Found ${cats.length} cats for user ${userId}`);
+    console.log(`[API] Found ${cats.length} cats for user ${userId}`);
     res.json({ success: true, data: { cats: cats || [] } });
   } catch (error) {
     console.error("Get Cats Error:", error);
@@ -104,15 +105,15 @@ export const createCat = async (req: any, res: any) => {
         color,
         eyeColor,
         features,
-        isSpayed,
-        isArchived: false, // Explicitly set to false
+        isSpayed: !!isSpayed, // Ensure boolean
+        isArchived: false, // EXPLICITLY set to false
         motherId: motherId || null,
         fatherId: fatherId || null,
         photoUrl: finalPhotoUrl
       }
     });
     
-    console.log(`Created new cat: ${newCat.name} (ID: ${newCat.id}) for user ${userId}`);
+    console.log(`[API] Created new cat: ${newCat.name} (ID: ${newCat.id}) for user ${userId}`);
     res.status(201).json({ success: true, data: { cat: newCat } });
   } catch (error) {
     console.error("Create Cat Error:", error);

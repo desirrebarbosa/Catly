@@ -1,8 +1,13 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CatProvider } from './src/context/CatContext';
+import { HomeIcon, CalendarDaysIcon, UserGroupIcon, UserIcon } from 'react-native-heroicons/solid';
+import { View as RNView } from 'react-native';
+
+const View = RNView as any;
 
 // Screens
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
@@ -18,38 +23,123 @@ import { EditCatScreen } from './src/screens/EditCatScreen';
 import { HealthLogScreen } from './src/screens/HealthLogScreen';
 import { AddHealthEventScreen } from './src/screens/AddHealthEventScreen';
 import { FamilyTreeScreen } from './src/screens/FamilyTreeScreen';
+import { ScheduleListScreen } from './src/screens/ScheduleListScreen';
+import { ContactListScreen } from './src/screens/ContactListScreen';
+import { AddContactScreen } from './src/screens/AddContactScreen';
+import { AddScheduleScreen } from './src/screens/AddScheduleScreen';
+import { AdoptionListScreen } from './src/screens/AdoptionListScreen';
+import { AddAdoptionScreen } from './src/screens/AddAdoptionScreen';
+import { LitterListScreen } from './src/screens/LitterListScreen';
+import { AddLitterScreen } from './src/screens/AddLitterScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Cast navigators
 const StackNavigator = Stack.Navigator as any;
-const Screen = Stack.Screen as any;
+const StackScreen = Stack.Screen as any;
+const TabNavigator = Tab.Navigator as any;
+const TabScreen = Tab.Screen as any;
+
+const BottomTabs = () => {
+  return (
+    <TabNavigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 0,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          height: 80,
+          paddingTop: 10,
+        },
+        tabBarActiveTintColor: '#F5A9C8',
+        tabBarInactiveTintColor: '#D1D5DB',
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontWeight: 'bold',
+          fontSize: 10,
+          marginBottom: 10,
+        }
+      }}
+    >
+      <TabScreen 
+        name="Dashboard" 
+        component={CatListScreen} 
+        options={{
+          tabBarLabel: 'My Cats',
+          tabBarIcon: ({ color, size }: any) => <HomeIcon color={color} size={size} />
+        }}
+      />
+      <TabScreen 
+        name="ScheduleList" 
+        component={ScheduleListScreen} 
+        options={{
+          tabBarLabel: 'Schedules',
+          tabBarIcon: ({ color, size }: any) => <CalendarDaysIcon color={color} size={size} />
+        }}
+      />
+      <TabScreen 
+        name="ContactList" 
+        component={ContactListScreen} 
+        options={{
+          tabBarLabel: 'Contacts',
+          tabBarIcon: ({ color, size }: any) => <UserGroupIcon color={color} size={size} />
+        }}
+      />
+      <TabScreen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, size }: any) => <UserIcon color={color} size={size} />
+        }}
+      />
+    </TabNavigator>
+  );
+};
 
 const AppNavigation = () => {
   const { user, isLoading } = useAuth();
   
-  if (isLoading) return null; // Or a splash screen
+  if (isLoading) return null;
 
   return (
     <StackNavigator screenOptions={{ headerShown: false }}>
       {!user ? (
-        // Auth Stack
         <>
-          <Screen name="Welcome" component={WelcomeScreen} />
-          <Screen name="Welcome2" component={Welcome2Screen} />
-          <Screen name="Login" component={LoginScreen} />
-          <Screen name="Signup" component={SignupScreen} />
-          <Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Screen name="SetupProfile" component={SetupProfileScreen} />
+          <StackScreen name="Welcome" component={WelcomeScreen} />
+          <StackScreen name="Welcome2" component={Welcome2Screen} />
+          <StackScreen name="Login" component={LoginScreen} />
+          <StackScreen name="Signup" component={SignupScreen} />
+          <StackScreen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <StackScreen name="SetupProfile" component={SetupProfileScreen} />
         </>
       ) : (
-        // App Stack
         <>
-          <Screen name="Dashboard" component={CatListScreen} />
-          <Screen name="AddCat" component={AddCatScreen} />
-          <Screen name="CatDetails" component={CatDetailsScreen} />
-          <Screen name="EditCat" component={EditCatScreen} />
-          <Screen name="HealthLog" component={HealthLogScreen} />
-          <Screen name="AddHealthEvent" component={AddHealthEventScreen} />
-          <Screen name="FamilyTree" component={FamilyTreeScreen} />
+          {/* Main Tabs */}
+          <StackScreen name="MainTabs" component={BottomTabs} />
+          
+          {/* Modals & Detail Screens (Push over tabs) */}
+          <StackScreen name="AddCat" component={AddCatScreen} />
+          <StackScreen name="CatDetails" component={CatDetailsScreen} />
+          <StackScreen name="EditCat" component={EditCatScreen} />
+          <StackScreen name="HealthLog" component={HealthLogScreen} />
+          <StackScreen name="AddHealthEvent" component={AddHealthEventScreen} />
+          <StackScreen name="FamilyTree" component={FamilyTreeScreen} />
+          <StackScreen name="AddSchedule" component={AddScheduleScreen} />
+          <StackScreen name="AddContact" component={AddContactScreen} />
+          <StackScreen name="AdoptionList" component={AdoptionListScreen} />
+          <StackScreen name="AddAdoption" component={AddAdoptionScreen} />
+          <StackScreen name="LitterList" component={LitterListScreen} />
+          <StackScreen name="AddLitter" component={AddLitterScreen} />
+          
+          {/* Re-using SetupProfile for Editing */}
+          <StackScreen name="EditProfile" component={SetupProfileScreen} />
         </>
       )}
     </StackNavigator>

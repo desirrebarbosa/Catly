@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, CameraIcon, CalendarDaysIcon, ScaleIcon } from 'react-native-heroicons/outline';
 import { PencilIcon } from 'react-native-heroicons/solid';
@@ -16,12 +16,14 @@ const TextInput = RNTextInput as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const Image = RNImage as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
+const useRoute = (ReactNavigation as any).useRoute;
 
 export const EditCatScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const route = useRoute<any>();
-  const { cat } = route.params;
+  const route = useRoute();
+  const { cat } = (route.params as any);
   const { updateCat, cats, fetchCats } = useCats();
 
   // State
@@ -121,18 +123,17 @@ export const EditCatScreen = () => {
       <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
 
       {/* Header */}
-      <View 
-        style={{ paddingTop: insets.top, height: insets.top + 60 }} 
-        className="px-6 flex-row items-center justify-between z-20"
-      >
-        <TouchableOpacity 
-            onPress={() => navigation.goBack()}
-            className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
-        >
-            <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text className="text-white text-xl font-bold tracking-wide">Edit Profile</Text>
-        <View className="w-10" />
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
+        <View className="h-14 flex-row items-center justify-between">
+            <TouchableOpacity 
+                onPress={() => navigation.goBack()}
+                className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+            >
+                <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
+            </TouchableOpacity>
+            <Text className="text-white text-xl font-bold tracking-wide">Edit Profile</Text>
+            <View className="w-10" />
+        </View>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -140,7 +141,7 @@ export const EditCatScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 40 }}
         >
-            <View className="h-32" />
+            <View className="h-24" />
 
             {/* Main Card */}
             <View className="bg-white rounded-t-[40px] px-6 pt-0 shadow-sm min-h-screen">
@@ -247,7 +248,7 @@ export const EditCatScreen = () => {
                             </View>
                         </View>
                         
-                        <InputGroup label="Features" value={features} onChangeText={setFeatures} multiline />
+                        <InputGroup label="Bio & Features (Notes)" value={features} onChangeText={setFeatures} multiline placeholder="Behavior, habits, identifying marks..." />
                     </View>
 
                     {/* Family - Vertical Stack */}

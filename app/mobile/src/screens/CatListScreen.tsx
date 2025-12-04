@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput, RefreshControl } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput, RefreshControl } from 'react-native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MagnifyingGlassIcon, PlusIcon } from 'react-native-heroicons/outline';
 import { useAuth } from '../context/AuthContext';
@@ -12,9 +11,12 @@ const Text = RNText as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const TextInput = RNTextInput as any;
+const FlatList = RNFlatList as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
+const useFocusEffect = (ReactNavigation as any).useFocusEffect;
 
 export const CatListScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { cats, fetchCats, isLoading } = useCats();
@@ -22,7 +24,6 @@ export const CatListScreen = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Force fetch every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchCats();
@@ -37,7 +38,6 @@ export const CatListScreen = () => {
 
   const filteredCats = cats.filter(cat => {
     const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
-    // Handle null/undefined isArchived by defaulting to false
     const isCatArchived = !!cat.isArchived;
     const matchesStatus = showArchived ? isCatArchived : !isCatArchived;
     return matchesSearch && matchesStatus;
@@ -93,9 +93,10 @@ export const CatListScreen = () => {
     <View className="flex-1 bg-primary">
       {/* Header Section */}
       <View 
-        style={{ paddingTop: insets.top + 10, paddingBottom: 24 }} 
-        className="px-6 bg-primary"
+        style={{ paddingTop: insets.top, paddingBottom: 24 }} 
+        className="px-6 bg-primary z-10"
       >
+        <View className="h-4" /> 
         <View className="flex-row justify-between items-start mb-6">
             <View>
                 <Text className="text-white font-extrabold text-3xl tracking-tight">
@@ -106,12 +107,14 @@ export const CatListScreen = () => {
                 </Text>
             </View>
              
-             <TouchableOpacity 
-                className="bg-white p-3 rounded-2xl shadow-sm active:opacity-90"
-                onPress={() => navigation.navigate('AddCat')}
-            >
-                <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
-            </TouchableOpacity>
+             <View className="flex-row gap-2">
+                 <TouchableOpacity 
+                    className="bg-white p-3 rounded-2xl shadow-sm active:opacity-90"
+                    onPress={() => navigation.navigate('AddCat')}
+                >
+                    <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
+                </TouchableOpacity>
+             </View>
         </View>
 
         {/* Search & Filter Row */}
@@ -145,7 +148,7 @@ export const CatListScreen = () => {
       </View>
 
       {/* List Container */}
-      <View className="flex-1 bg-background rounded-t-[30px] px-6 pt-8 overflow-hidden shadow-2xl">
+      <View className="flex-1 bg-gray-50 rounded-t-[30px] px-6 pt-8 overflow-hidden shadow-2xl">
         {isLoading && !isRefreshing && cats.length === 0 ? (
             <View className="flex-1 justify-center items-center">
                 <ActivityIndicator size="large" color="#F5A9C8" />
@@ -154,7 +157,7 @@ export const CatListScreen = () => {
             <FlatList
                 data={filteredCats}
                 extraData={cats}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item: any) => item.id}
                 renderItem={renderCatItem}
                 contentContainerStyle={{ paddingBottom: 80 }}
                 refreshControl={
@@ -163,6 +166,7 @@ export const CatListScreen = () => {
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                     <View className="items-center mt-20 px-10 opacity-60">
+                        <Text className="text-6xl mb-4">🐱</Text>
                         <Text className="text-secondary text-xl font-bold mb-2">No cats found.</Text>
                         <Text className="text-secondaryLight text-center leading-5">
                             {searchQuery 

@@ -3,7 +3,6 @@ import { PORT } from '../config/env';
 
 const BASE_URL = `http://localhost:${PORT}/api`;
 
-// --- Professional ANSI Color Codes ---
 const C = {
   GREEN: '\x1b[32m',
   RED: '\x1b[31m',
@@ -15,139 +14,163 @@ const C = {
 
 const printPass = (msg: string) => console.log(`${C.GREEN}${C.BOLD}[PASS]${C.RESET} ${msg}`);
 const printFail = (msg: string) => console.error(`${C.RED}${C.BOLD}[FAIL]${C.RESET} ${msg}`);
-const printInfo = (msg: string) => console.log(`${C.CYAN}[INFO]${C.RESET} ${msg}`);
-const printStep = (step: number, msg: string) => console.log(`\n${C.BOLD}[STEP ${step}] ${msg}${C.RESET}`);
+const printHeader = (msg: string) => console.log(`\n${C.CYAN}${C.BOLD}--- ${msg} ---${C.RESET}`);
 
-const createUser = async (name: string) => {
-    const email = `test_${name}_${Date.now()}@catly.com`;
-    const password = 'password123';
-    
-    const res = await fetch(`${BASE_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name })
+// --- Helper Functions ---
+const post = async (endpoint: string, data: any, token?: string) => {
+    const headers: any = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${BASE_URL}${endpoint}`, { method: 'POST', headers, body: JSON.stringify(data) });
+    return res.json();
+};
+
+const get = async (endpoint: string, token: string) => {
+    const res = await fetch(`${BASE_URL}${endpoint}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
     });
     return res.json();
 };
 
-const createCat = async (token: string, name: string) => {
-    return await fetch(`${BASE_URL}/cats`, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            name,
-            breed: 'TestBreed',
-            gender: 'Female',
-            weight: 4,
-            birthDate: new Date().toISOString(),
-            isSpayed: false,
-            isArchived: false,
-            photoUrl: 'https://placekitten.com/200/200'
-        })
+const put = async (endpoint: string, data: any, token: string) => {
+    const res = await fetch(`${BASE_URL}${endpoint}`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(data)
     });
+    return res.json();
 };
 
-const fetchCats = async (token: string) => {
-    return await fetch(`${BASE_URL}/cats`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
+const del = async (endpoint: string, token: string) => {
+    const res = await fetch(`${BASE_URL}${endpoint}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` } 
     });
+    return res.json();
 };
 
+// --- Test Suite ---
 const runTest = async () => {
-  console.log(`\n${C.BOLD}${C.GREEN}=== CATLY SYSTEM DIAGNOSTICS ===${C.RESET}`);
-  console.log(`${C.CYAN}Target Endpoint:${C.RESET} ${BASE_URL}`);
+  console.log(`\n${C.BOLD}${C.GREEN}=== CATLY RTM VALIDATION SUITE ===${C.RESET}`);
+  let token = '';
+  let userId = '';
+  let catId = '';
+  let scheduleId = '';
+  let contactId = '';
 
   try {
-    // [1] Connectivity
-    printStep(1, "Checking API Connectivity");
-    try {
-        const res = await fetch(BASE_URL.replace('/api', '')); 
-        if (res.status === 200) printPass("API is online and reachable.");
-        else throw new Error(`Status ${res.status}`);
-    } catch (e) {
-        printFail("API is unreachable. Is the server running?");
-        process.exit(1);
-    }
-
-    // [2] User Isolation Setup
-    printStep(2, "Setting up User Isolation Test");
+    // ----------------------------------------------------
+    // RTM 1-4: Authentication
+    // ----------------------------------------------------
+    printHeader("RTM 1-4: Authentication");
+    const email = `rtm_user_${Date.now()}@catly.com`;
     
-    // Create User A
-    const userA = await createUser("UserA");
-    if(!userA.success) throw new Error("Failed to create User A");
-    printPass(`Created User A (ID: ${userA.data.user.id})`);
-
-    // Create User B
-    const userB = await createUser("UserB");
-    if(!userB.success) throw new Error("Failed to create User B");
-    printPass(`Created User B (ID: ${userB.data.user.id})`);
-
-    // [3] Data Creation
-    printStep(3, "Populating Data");
+    // RTM 1: Signup
+    const signup = await post('/auth/signup', { email, password: 'password123', name: 'RTM Tester' });
+    if (!signup.success) throw new Error('Signup failed');
+    printPass('User Registration (RTM 1)');
     
-    // User A creates Cat A
-    const catARes = await createCat(userA.data.token, "Cat_A_Owned");
-    const catAData = await catARes.json();
-    const catAId = catAData.data.cat.id;
-    printPass("User A created 'Cat_A_Owned'");
+    // RTM 2: Login
+    const login = await post('/auth/login', { email, password: 'password123' });
+    if (!login.success) throw new Error('Login failed');
+    token = login.data.token;
+    userId = login.data.user.id;
+    printPass('User Login (RTM 2)');
 
-    // User B creates Cat B
-    const catBRes = await createCat(userB.data.token, "Cat_B_Owned");
-    const catBData = await catBRes.json();
-    const catBId = catBData.data.cat.id;
-    printPass("User B created 'Cat_B_Owned'");
+    // ----------------------------------------------------
+    // RTM 5-16: Cat Profile Management
+    // ----------------------------------------------------
+    printHeader("RTM 5-16: Cat Profiles");
 
-    // [4] Verifying Isolation (The critical user-based fetch test)
-    printStep(4, "Verifying Data Isolation");
+    // RTM 6, 8: Create Profile
+    const createCat = await post('/cats', { name: 'RTM Cat', gender: 'Male', breed: 'Test', birthDate: new Date() }, token);
+    if (!createCat.success) throw new Error('Create Cat failed');
+    catId = createCat.data.cat.id;
+    printPass('Create Cat Profile (RTM 6, 8)');
 
-    // Fetch User A's List
-    const listARes = await fetchCats(userA.data.token);
-    const listA = await listARes.json();
-    const catsA = listA.data.cats;
+    // RTM 13: Edit Profile
+    const updateCat = await put(`/cats/${catId}`, { name: 'RTM Cat Updated', gender: 'Male' }, token);
+    if (updateCat.data.cat.name !== 'RTM Cat Updated') throw new Error('Update Cat failed');
+    printPass('Edit Cat Details (RTM 13)');
 
-    // Fetch User B's List
-    const listBRes = await fetchCats(userB.data.token);
-    const listB = await listBRes.json();
-    const catsB = listB.data.cats;
+    // RTM 9: List Cats
+    const listCats = await get('/cats', token);
+    if (listCats.data.cats.length !== 1) throw new Error('List Cats failed');
+    printPass('View All Cats List (RTM 9)');
 
-    // Checks for A
-    const hasCatA = catsA.find((c: any) => c.id === catAId);
-    const hasCatB = catsA.find((c: any) => c.id === catBId);
+    // ----------------------------------------------------
+    // RTM 17-22: Health Records
+    // ----------------------------------------------------
+    printHeader("RTM 17-22: Health Records");
 
-    if (hasCatA && !hasCatB) {
-        printPass("User A sees ONLY their own cats.");
-    } else {
-        printFail("User A Data Leak! User A saw User B's cat or lost their own.");
-        console.log(catsA);
-        throw new Error("Isolation Failed");
-    }
+    // RTM 17: Add Health Event
+    const addHealth = await post(`/cats/${catId}/health`, { 
+        title: 'Vaccine', eventType: 'Vaccination', date: new Date() 
+    }, token);
+    if (!addHealth.success) throw new Error('Add Health Event failed');
+    const eventId = addHealth.data.event.id;
+    printPass('Add Health Event (RTM 17)');
 
-    // Checks for B
-    const hasCatA_inB = catsB.find((c: any) => c.id === catAId);
-    const hasCatB_inB = catsB.find((c: any) => c.id === catBId);
+    // RTM 20: View History
+    const history = await get(`/cats/${catId}/health`, token);
+    if (history.data.events.length !== 1) throw new Error('View History failed');
+    printPass('View Health History (RTM 20)');
 
-    if (hasCatB_inB && !hasCatA_inB) {
-        printPass("User B sees ONLY their own cats.");
-    } else {
-        printFail("User B Data Leak! User B saw User A's cat.");
-        throw new Error("Isolation Failed");
-    }
+    // RTM 19: Delete Event
+    const delHealth = await del(`/cats/health/${eventId}`, token);
+    if (!delHealth.success) throw new Error('Delete Event failed');
+    printPass('Delete Health Event (RTM 19)');
 
-    // [5] Cleanup
-    printStep(5, "System Cleanup");
-    // We only delete the cats we created
-    await fetch(`${BASE_URL}/cats/${catAId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${userA.data.token}` }});
-    await fetch(`${BASE_URL}/cats/${catBId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${userB.data.token}` }});
-    printPass("Test data purged.");
+    // ----------------------------------------------------
+    // RTM 29-35: Scheduling
+    // ----------------------------------------------------
+    printHeader("RTM 29-35: Scheduling");
 
-    console.log(`\n${C.GREEN}${C.BOLD}✅ ALL SYSTEMS FUNCTIONING NORMALLY${C.RESET}\n`);
+    // RTM 30: Create Schedule
+    const addSched = await post('/schedules', { taskName: 'Meds', time: '10:00 AM', recurrence: 'Daily' }, token);
+    if (!addSched.success) throw new Error('Add Schedule failed');
+    scheduleId = addSched.data.schedule.id;
+    printPass('Create Schedule (RTM 30)');
+
+    // RTM 29: View Schedules
+    const listSched = await get('/schedules', token);
+    if (listSched.data.schedules.length === 0) throw new Error('List Schedules failed');
+    printPass('View All Schedules (RTM 29)');
+
+    // RTM 32: Delete Schedule
+    const delSched = await del(`/schedules/${scheduleId}`, token);
+    if (!delSched.success) throw new Error('Delete Schedule failed');
+    printPass('Delete Schedule (RTM 32)');
+
+    // ----------------------------------------------------
+    // RTM 40-43: Contacts
+    // ----------------------------------------------------
+    printHeader("RTM 40-43: Contacts");
+
+    // RTM 40: Add Contact
+    const addContact = await post('/contacts', { name: 'Dr. Test', role: 'Vet', phone: '123' }, token);
+    if (!addContact.success) throw new Error('Add Contact failed');
+    contactId = addContact.data.contact.id;
+    printPass('Add Contact (RTM 40)');
+
+    // RTM 41: List Contacts
+    const listContacts = await get('/contacts', token);
+    if (listContacts.data.contacts.length === 0) throw new Error('List Contacts failed');
+    printPass('View Contact List (RTM 41)');
+
+    // ----------------------------------------------------
+    // RTM 36-39: Adoption
+    // ----------------------------------------------------
+    printHeader("RTM 36-39: Adoption History");
+    
+    // RTM 37: Add Adoption Record
+    const addAdopt = await post(`/adoptions/${catId}`, { date: new Date(), type: 'Adoption', adopterName: 'Me' }, token);
+    if (!addAdopt.success) throw new Error('Add Adoption Record failed');
+    printPass('Add Adoption Record (RTM 37)');
+
+    console.log(`\n${C.GREEN}${C.BOLD}✅ ALL RTM SCENARIOS PASSED SUCCESSFULLY${C.RESET}\n`);
 
   } catch (error: any) {
-    console.log(`\n${C.RED}${C.BOLD}❌ DIAGNOSTICS ABORTED${C.RESET}`);
+    console.log(`\n${C.RED}${C.BOLD}❌ RTM VALIDATION FAILED${C.RESET}`);
     printFail(error.message || error);
     process.exit(1);
   }

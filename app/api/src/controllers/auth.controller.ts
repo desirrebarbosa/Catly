@@ -1,3 +1,4 @@
+
 import { Request, Response } from 'express';
 import { prisma } from '../config/db';
 import bcrypt from 'bcryptjs';
@@ -8,8 +9,23 @@ export const signup = async (req: any, res: any) => {
   try {
     const { email, password, name } = req.body;
     
+    // Trim email to prevent space issues
+    const cleanEmail = email.trim();
+
+    // --- Password Validation ---
+    if (password.length < 8) {
+        return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long.' });
+    }
+    if (!/[A-Z]/.test(password)) {
+        return res.status(400).json({ success: false, error: 'Password must contain at least one uppercase letter.' });
+    }
+    if (!/[0-9]/.test(password)) {
+        return res.status(400).json({ success: false, error: 'Password must contain at least one number.' });
+    }
+    // ---------------------------
+
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (existingUser) {
@@ -21,11 +37,12 @@ export const signup = async (req: any, res: any) => {
 
     const newUser = await prisma.user.create({
       data: {
-        email,
+        email: cleanEmail,
         password: hashedPassword,
         name,
         phone: '',
         about: '',
+        photoUrl: '', // Default empty
       },
     });
     
@@ -35,7 +52,12 @@ export const signup = async (req: any, res: any) => {
       success: true, 
       data: { 
         token,
-        user: { id: newUser.id, name: newUser.name, email: newUser.email } 
+        user: { 
+            id: newUser.id, 
+            name: newUser.name, 
+            email: newUser.email,
+            photoUrl: newUser.photoUrl 
+        } 
       } 
     });
   } catch (error) {
@@ -47,22 +69,29 @@ export const signup = async (req: any, res: any) => {
 export const login = async (req: any, res: any) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = email.trim();
     
+    console.log(`[Auth] Attempting login for: ${cleanEmail}`);
+
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (!user) {
+      console.log(`[Auth] User not found: ${cleanEmail}`);
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
+      console.log(`[Auth] Password mismatch for: ${cleanEmail}`);
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    
+    console.log(`[Auth] Login successful for: ${cleanEmail}`);
 
     res.json({ 
       success: true, 
@@ -73,7 +102,8 @@ export const login = async (req: any, res: any) => {
           name: user.name, 
           email: user.email,
           phone: user.phone || '', 
-          about: user.about || '' 
+          about: user.about || '',
+          photoUrl: user.photoUrl || ''
         } 
       } 
     });
@@ -110,7 +140,7 @@ export const getProfile = async (req: any, res: any) => {
 export const updateProfile = async (req: any, res: any) => {
   try {
     const userId = req.userId;
-    const { name, phone, about } = req.body;
+    const { name, phone, about, photoUrl } = req.body;
     
     if (!userId) {
         return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -118,7 +148,7 @@ export const updateProfile = async (req: any, res: any) => {
     
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { name, phone, about },
+      data: { name, phone, about, photoUrl },
     });
     
     const { password, ...userData } = updatedUser;

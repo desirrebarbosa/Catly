@@ -1,30 +1,41 @@
+
 import express from 'express';
 import cors from 'cors';
 import { PORT } from './config/env';
+import { prisma } from './config/db';
 import { authRouter } from './routes/auth.routes';
 import { catRouter } from './routes/cat.routes';
-// import { runAutoArchive } from './controllers/cat.controller';
+import { scheduleRouter } from './routes/schedule.routes';
+import { contactRouter } from './routes/contact.routes';
+import { adoptionRouter } from './routes/adoption.routes';
+import { litterRouter } from './routes/litter.routes';
+import { runAutoArchive } from './controllers/cat.controller';
 
 const app = express();
 
 app.use(cors());
-// Fix: Explicitly cast to RequestHandler to resolve type mismatch between connect and express types
-app.use(express.json({ limit: '10mb' }) as express.RequestHandler); // Increased limit for Base64 photos
+app.use(express.json({ limit: '10mb' }) as any);
 
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/cats', catRouter);
+app.use('/api/schedules', scheduleRouter);
+app.use('/api/contacts', contactRouter);
+app.use('/api/adoptions', adoptionRouter);
+app.use('/api/litters', litterRouter);
 
-// Base route
 app.get('/', (req, res) => {
-  res.send('Catly API is Purring!');
+  res.send('🐱 Catly API is Purring!');
 });
 
-// Start Server
 app.listen(PORT, async () => {
-  console.log(`API Server running on port ${PORT}`);
-  
-  // // Run Auto-Archiver on startup
-  // console.log("⏳ Checking for inactive cats...");
-  // await runAutoArchive();
+  console.log(`🚀 API Server running on port ${PORT}`);
+  try {
+    await prisma.$connect();
+    console.log("✅ Database connected successfully");
+  } catch (e) {
+    console.error("❌ Database connection failed.");
+  }
+  console.log("⏳ Checking for inactive cats...");
+  await runAutoArchive();
 });

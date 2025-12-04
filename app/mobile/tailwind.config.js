@@ -9,11 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#F5A9C8', // Soft Pink from PDF
+        primary: '#F5A9C8', 
         primaryDark: '#E680A6',
         primaryLight: '#FCE7F0',
-        secondary: '#4A4A4A', // Dark Gray text
-        secondaryLight: '#9CA3AF', // Light gray text
+        secondary: '#4A4A4A', 
+        secondaryLight: '#9CA3AF', 
         background: '#FFFFFF',
         card: '#FFFFFF',
         inputBg: '#FAFAFA',

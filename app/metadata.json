@@ -3,5 +3,7 @@
     "camera",
     "microphone",
     "geolocation"
-  ]
+  ],
+  "name": "Catly",
+  "description": "A smart cat management mobile app that tracks each cat’s details, health status, litters, and adoption history."
 }

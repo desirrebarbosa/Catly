@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View as RNView, Text as RNText, Image as RNImage, ActivityIndicator as RNActivityIndicator, TouchableOpacity as RNTouchableOpacity } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { View as RNView, Text as RNText, Image as RNImage, ActivityIndicator as RNActivityIndicator, TouchableOpacity as RNTouchableOpacity, ScrollView } from 'react-native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
@@ -10,12 +10,14 @@ const Text = RNText as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const ActivityIndicator = RNActivityIndicator as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
+const useRoute = (ReactNavigation as any).useRoute;
 
 export const FamilyTreeScreen = () => {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { catId } = route.params;
+  const { catId } = (route.params as any);
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
@@ -24,69 +26,102 @@ export const FamilyTreeScreen = () => {
     });
   }, [catId]);
 
-  if (!data) return <ActivityIndicator className="mt-20" color="#F5A9C8" />;
+  if (!data) return <ActivityIndicator className="mt-20" size="large" color="#F5A9C8" />;
 
-  const ParentNode = ({ label, cat }: any) => (
-    <View className="items-center">
-      <View className="w-20 h-20 rounded-full bg-gray-200 border-4 border-white shadow-sm overflow-hidden mb-2">
-        {cat ? <Image source={{ uri: cat.photoUrl || 'https://placekitten.com/100/100' }} className="w-full h-full" /> : <Text className="text-2xl text-center mt-5">❓</Text>}
+  const ParentNode = ({ label, cat, color = "bg-gray-200" }: any) => (
+    <View className="items-center z-10">
+      <View className={`w-20 h-20 rounded-full ${color} border-4 border-white shadow-lg overflow-hidden mb-2`}>
+        {cat ? (
+            <Image source={{ uri: cat.photoUrl || 'https://placekitten.com/100/100' }} className="w-full h-full" resizeMode="cover" />
+        ) : (
+            <View className="items-center justify-center h-full"><Text className="text-2xl opacity-50">?</Text></View>
+        )}
       </View>
-      <Text className="font-bold text-gray-700">{cat?.name || 'Unknown'}</Text>
-      <Text className="text-xs text-gray-400 uppercase">{label}</Text>
+      <View className="bg-white/80 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm border border-white">
+        <Text className="font-bold text-gray-700 text-sm text-center" numberOfLines={1}>{cat?.name || 'Unknown'}</Text>
+      </View>
+      <Text className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-widest">{label}</Text>
     </View>
   );
 
   return (
     <View className="flex-1 bg-white">
+        {/* Header */}
       <View 
         style={{ paddingTop: insets.top + 10, paddingBottom: 16 }} 
-        className="px-5 border-b border-gray-100 flex-row items-center bg-white z-10"
+        className="px-5 flex-row items-center bg-white z-20 shadow-sm"
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
+        <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="mr-4 w-10 h-10 bg-gray-50 items-center justify-center rounded-full"
+        >
              <ChevronLeftIcon size={24} color="#F5A9C8" strokeWidth={2.5} />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-800">Family Tree</Text>
       </View>
       
-      <View className="items-center pt-10">
-        <View className="flex-row w-full justify-around px-10 mb-5">
-           <ParentNode label="Sire" cat={data.father} />
-           <ParentNode label="Dam" cat={data.mother} />
-        </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <View className="items-center pt-10">
+            
+            {/* Parents Layer */}
+            <View className="flex-row w-full justify-evenly px-4 mb-8 relative">
+                <ParentNode label="Sire (Father)" cat={data.father} color="bg-blue-100" />
+                <ParentNode label="Dam (Mother)" cat={data.mother} color="bg-pink-100" />
+                
+                {/* Connecting Curve */}
+                <View className="absolute top-10 left-[25%] right-[25%] h-16 border-t-2 border-l-2 border-r-2 border-gray-300 rounded-t-[40px] -z-0" />
+            </View>
 
-        {/* Lines */}
-        <View className="w-40 h-10 border-t-2 border-l-2 border-r-2 border-gray-200 rounded-t-3xl -mt-5" />
-        <View className="w-0.5 h-8 bg-gray-200" />
+            {/* Vertical Link */}
+            <View className="w-0.5 h-10 bg-gray-300 -mt-10 mb-2 z-0" />
 
-        {/* Child */}
-        <View className="items-center mb-10">
-           <View className="w-28 h-28 rounded-full bg-primary border-4 border-white shadow-md overflow-hidden justify-center items-center mb-2">
-             <Image source={{ uri: data.photoUrl || 'https://placekitten.com/200/200' }} className="w-full h-full" />
-           </View>
-           <Text className="text-2xl font-bold text-gray-800">{data.name}</Text>
-           <Text className="text-primary font-bold">The Star</Text>
-        </View>
+            {/* Child (Focal Point) */}
+            <View className="items-center mb-12 z-10">
+                <View className="relative">
+                    <View className="w-32 h-32 rounded-full bg-primary border-[6px] border-white shadow-xl overflow-hidden mb-3">
+                        <Image source={{ uri: data.photoUrl || 'https://placekitten.com/200/200' }} className="w-full h-full" resizeMode="cover" />
+                    </View>
+                    <View className="absolute -bottom-3 -right-3 bg-yellow-400 w-12 h-12 rounded-full border-4 border-white items-center justify-center shadow-md">
+                        <Text className="text-xl">⭐</Text>
+                    </View>
+                </View>
+                <Text className="text-3xl font-extrabold text-gray-800 mt-2">{data.name}</Text>
+                <Text className="text-primary font-bold tracking-wide uppercase text-xs">Current Profile</Text>
+            </View>
 
-        <View className="w-full px-8">
-          <View className="flex-row items-center mb-4">
-             <Text className="text-xs font-bold text-gray-400 uppercase bg-white pr-2">Offspring</Text>
-             <View className="h-[1px] bg-gray-200 flex-1" />
-          </View>
-          <View className="flex-row flex-wrap gap-4 justify-center">
-            {[...(data.childrenMother || []), ...(data.childrenFather || [])].map((child: any) => (
-              <View key={child.id} className="items-center">
-                 <View className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden mb-1">
-                   <Image source={{ uri: child.photoUrl || 'https://placekitten.com/50/50' }} className="w-full h-full" />
-                 </View>
-                 <Text className="text-xs text-gray-600">{child.name}</Text>
-              </View>
-            ))}
-            {[...(data.childrenMother || []), ...(data.childrenFather || [])].length === 0 && (
-               <Text className="text-gray-300 italic">No offspring recorded.</Text>
-            )}
-          </View>
+            {/* Offspring Section */}
+            <View className="w-full px-6">
+                <View className="flex-row items-center mb-6">
+                    <View className="h-[1px] bg-gray-200 flex-1" />
+                    <Text className="text-xs font-extrabold text-gray-400 uppercase bg-white px-4 tracking-widest">Offspring</Text>
+                    <View className="h-[1px] bg-gray-200 flex-1" />
+                </View>
+
+                {/* Vertical Link from Child to Offspring */}
+                <View className="absolute top-[-30px] left-[50%] w-0.5 h-8 bg-gray-200" />
+
+                <View className="flex-row flex-wrap gap-4 justify-center">
+                    {[...(data.childrenMother || []), ...(data.childrenFather || [])].map((child: any) => (
+                    <TouchableOpacity 
+                        key={child.id} 
+                        className="items-center mb-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 w-24"
+                        onPress={() => navigation.push('CatDetails', { catId: child.id })}
+                    >
+                        <View className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden mb-2 border-2 border-white shadow-sm">
+                            <Image source={{ uri: child.photoUrl || 'https://placekitten.com/50/50' }} className="w-full h-full" resizeMode="cover" />
+                        </View>
+                        <Text className="text-xs font-bold text-gray-600 text-center" numberOfLines={1}>{child.name}</Text>
+                    </TouchableOpacity>
+                    ))}
+                    {[...(data.childrenMother || []), ...(data.childrenFather || [])].length === 0 && (
+                        <View className="items-center py-6">
+                            <Text className="text-gray-300 italic text-base">No recorded offspring.</Text>
+                        </View>
+                    )}
+                </View>
+            </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };

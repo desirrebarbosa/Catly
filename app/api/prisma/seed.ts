@@ -1,3 +1,4 @@
+
 import { prisma } from '../src/config/db';
 import bcrypt from 'bcryptjs';
 
@@ -11,7 +12,15 @@ async function main() {
 
     const user = await prisma.user.upsert({
       where: { email: 'admin@catly.com' },
-      update: {}, // If exists, do nothing
+      update: {
+        // Force update password and details to ensure they match what we expect
+        password: hashedPassword,
+        name: 'Beatrice Abadiano',
+        phone: '09171234567',
+        about: 'Cat lover and breeder. Every day is a purr-fect day to care!',
+        // We do not overwrite createdAt, ensuring legacy data stays if needed, 
+        // but we ensure auth credentials are fresh.
+      },
       create: {
         email: 'admin@catly.com',
         password: hashedPassword,
@@ -21,9 +30,40 @@ async function main() {
       },
     });
 
-    console.log(`👤 User created: ${user.name}`);
+    console.log(`👤 User synced: ${user.name} (Password: password123)`);
 
-    // 2. Create Parent Cats (Dam & Sire)
+    // 2. Create Contacts (RTM 40)
+    await prisma.contact.create({
+      data: {
+        ownerId: user.id,
+        name: 'Dr. Smith (Vet)',
+        role: 'Veterinarian',
+        phone: '555-0123',
+        email: 'dr.smith@vetclinic.com'
+      }
+    });
+    console.log('📞 Contacts created');
+
+    // 3. Create Schedules (RTM 30)
+    await prisma.schedule.create({
+      data: {
+        userId: user.id,
+        taskName: 'Morning Feeding',
+        time: '08:00 AM',
+        recurrence: 'Daily'
+      }
+    });
+    await prisma.schedule.create({
+      data: {
+        userId: user.id,
+        taskName: 'Flea Prevention',
+        time: '09:00 AM',
+        recurrence: 'Monthly'
+      }
+    });
+    console.log('📅 Schedules created');
+
+    // 4. Create Parent Cats (Dam & Sire)
     const luna = await prisma.cat.create({
       data: {
         ownerId: user.id,
@@ -62,7 +102,31 @@ async function main() {
 
     console.log(`🐱 Parents created: ${luna.name} & ${simba.name}`);
 
-    // 3. Create Offspring (linked to parents)
+    // 5. Adoption Record (RTM 37)
+    await prisma.adoptionRecord.create({
+      data: {
+        catId: luna.id,
+        date: new Date('2020-08-01'),
+        type: 'Adoption',
+        adopterName: 'Beatrice Abadiano',
+        notes: 'Adopted from City Shelter. Microchipped.'
+      }
+    });
+    console.log('🏠 Adoption record created');
+
+    // 6. Litter Record (RTM 23)
+    await prisma.litter.create({
+      data: {
+        motherId: luna.id,
+        fatherId: simba.id,
+        dateOfBirth: new Date('2023-01-10'),
+        kittenCount: 2,
+        notes: 'First litter. All healthy.'
+      }
+    });
+    console.log('🐈 Litter record created');
+
+    // 7. Create Offspring (linked to parents)
     const nala = await prisma.cat.create({
       data: {
         ownerId: user.id,
@@ -103,9 +167,9 @@ async function main() {
       },
     });
 
-    console.log(`🐈 Kittens created: ${nala.name} & ${tiger.name}`);
+    console.log(`🍼 Kittens created: ${nala.name} & ${tiger.name}`);
 
-    // 4. Create Health Events
+    // 8. Create Health Events
     await prisma.healthEvent.create({
       data: {
         catId: luna.id,
@@ -125,17 +189,6 @@ async function main() {
         notes: 'Surgery went well. Recovered in 2 days.',
         diagnosis: 'Healthy',
         date: new Date('2023-07-20'),
-      },
-    });
-
-    await prisma.healthEvent.create({
-      data: {
-        catId: simba.id,
-        title: 'Dental Cleaning',
-        eventType: 'Procedure',
-        notes: 'Teeth scaled and polished. No extractions needed.',
-        diagnosis: 'Mild Gingivitis',
-        date: new Date('2023-09-10'),
       },
     });
 

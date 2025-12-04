@@ -1,10 +1,28 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-// CONFIGURATION:
-// For Android Emulator: Use 'http://10.0.2.2:3000/api'
-// For iOS Simulator: Use 'http://localhost:3000/api'
-// For Physical Device: Use your computer's LAN IP, e.g., 'http://192.168.1.X:3000/api'
-const BASE_URL = 'http://10.0.2.2:3000/api'; 
+const getBaseUrl = () => {
+  // 1. If running on Web, use localhost
+  if (Platform.OS === 'web') return 'http://192.168.1.169:3000/api';
+
+  // 2. If running on physical device via Expo Go, get the PC's IP
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  if (debuggerHost) {
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:3000/api`;
+  }
+
+  // 3. Fallback for Android Emulator
+  if (Platform.OS === 'android') return 'http://10.0.2.2:3000/api';
+
+  // 4. Fallback for iOS Simulator
+  return 'http://192.168.1.169:3000/api';
+};
+
+const BASE_URL = getBaseUrl();
+
+console.log('🔗 API Base URL:', BASE_URL);
 
 class ApiService {
   async _getHeaders() {
@@ -24,7 +42,8 @@ class ApiService {
       return data;
     } catch (error) {
       console.error(`API Request Error: ${endpoint}`, error);
-      throw error;
+      // Return a fake error object so the app handles it gracefully
+      return { success: false, error: 'Network request failed' };
     }
   }
 

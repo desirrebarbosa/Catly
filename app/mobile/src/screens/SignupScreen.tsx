@@ -1,8 +1,12 @@
+
 import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, Image as RNImage, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
+
+// Fix: Declare require to avoid TypeScript errors when node types are missing
+declare var require: any;
 
 const View = RNView as any;
 const Text = RNText as any;
@@ -10,22 +14,42 @@ const TextInput = RNTextInput as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
 
 export const SignupScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const { signup } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const validatePassword = (pass: string) => {
+    if (pass.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[A-Z]/.test(pass)) return "Password must contain at least one uppercase letter.";
+    if (!/[0-9]/.test(pass)) return "Password must contain at least one number.";
+    return null;
+  };
+
   const handleSignup = async () => {
     if (!email || !password || !username) return Alert.alert('Error', 'Please fill in all fields');
+    
+    // Password Validation
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+        return Alert.alert('Weak Password', passwordError);
+    }
+
     setLoading(true);
     const result = await signup(email, password, username);
     setLoading(false);
-    if (result.success) navigation.navigate('SetupProfile');
-    else Alert.alert('Signup Failed', result.error);
+    
+    if (result.success) {
+        // Navigate to Setup Profile immediately after successful signup
+        navigation.navigate('SetupProfile');
+    } else {
+        Alert.alert('Signup Failed', result.error);
+    }
   };
 
   return (
@@ -64,6 +88,9 @@ export const SignupScreen = () => {
               onChangeText={setPassword}
               secureTextEntry
             />
+            <Text className="text-gray-400 text-xs mt-2 ml-1">
+               Must be 8+ chars with 1 uppercase & 1 number.
+            </Text>
           </View>
 
           <View className="w-full px-5 mt-2">

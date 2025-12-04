@@ -1,14 +1,16 @@
 import React from 'react';
-import { View as RNView, Text as RNText, FlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 
-// Cast components to allow 'className' prop for NativeWind
+// Cast components to allow 'className' prop for NativeWind and fix types
 const View = RNView as any;
 const Text = RNText as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const FlatList = RNFlatList as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
 
 // Mock Data
 const MOCK_CATS = [
@@ -17,7 +19,7 @@ const MOCK_CATS = [
 ];
 
 export const HomeScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const { user } = useAuth();
 
   const renderItem = ({ item }: { item: typeof MOCK_CATS[0] }) => (
@@ -43,7 +45,7 @@ export const HomeScreen = () => {
 
       <FlatList
         data={MOCK_CATS}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: any) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 24 }}
         ListEmptyComponent={

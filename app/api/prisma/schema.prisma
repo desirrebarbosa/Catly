@@ -15,51 +15,107 @@ model User {
   name      String
   phone     String?
   about     String?
+  photoUrl  String?  // Added for Profile Picture
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   cats      Cat[]
+  schedules Schedule[]
+  contacts  Contact[]
 }
 
 model Cat {
-  id         String   @id @default(uuid())
-  ownerId    String
-  owner      User     @relation(fields: [ownerId], references: [id])
-  name       String
-  nickname   String?
-  breed      String?
-  gender     String
-  weight     Float?
-  birthDate  DateTime?
-  color      String?
-  eyeColor   String?
-  features   String?
-  isSpayed   Boolean  @default(false)
-  isArchived Boolean  @default(false)
-  photoUrl   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  name        String
+  nickname    String?
+  breed       String?
+  gender      String   // Male, Female
+  weight      Float?
+  birthDate   DateTime?
+  color       String?
+  eyeColor    String?
+  features    String?
+  isSpayed    Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  photoUrl    String?
 
-  // Lineage Relations (Self-Referencing)
-  motherId       String?
-  mother         Cat?  @relation("MotherToChild", fields: [motherId], references: [id])
-  childrenMother Cat[] @relation("MotherToChild")
+  // Lineage (Self-relations)
+  motherId    String?
+  mother      Cat?     @relation("MotherChildren", fields: [motherId], references: [id])
+  childrenMother Cat[] @relation("MotherChildren")
 
-  fatherId       String?
-  father         Cat?  @relation("FatherToChild", fields: [fatherId], references: [id])
-  childrenFather Cat[] @relation("FatherToChild")
+  fatherId    String?
+  father      Cat?     @relation("FatherChildren", fields: [fatherId], references: [id])
+  childrenFather Cat[] @relation("FatherChildren")
 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Related Data
   healthEvents HealthEvent[]
+  adoptions    AdoptionRecord[]
+  
+  // Litters where this cat is the mother
+  litters      Litter[]      @relation("MotherLitters")
+  // Litters where this cat is the father
+  littersSired Litter[]      @relation("FatherLitters")
 }
 
 model HealthEvent {
   id        String   @id @default(uuid())
   catId     String
-  cat       Cat      @relation(fields: [catId], references: [id])
+  cat       Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
   title     String
-  eventType String
+  eventType String   // Vaccination, Surgery, etc.
   notes     String?
   diagnosis String?
-  date      DateTime @default(now())
+  date      DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+
+model Schedule {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskName   String
+  time       String
+  recurrence String   // Daily, Weekly, Monthly
+  createdAt  DateTime @default(now())
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  role      String   // Vet, Breeder, Owner
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+}
+
+model AdoptionRecord {
+  id          String   @id @default(uuid())
+  catId       String
+  cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  date        DateTime
+  type        String   // Adoption, Transfer, Rehoming
+  adopterName String?
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Litter {
+  id          String   @id @default(uuid())
+  motherId    String
+  mother      Cat      @relation("MotherLitters", fields: [motherId], references: [id])
+  fatherId    String?
+  father      Cat?     @relation("FatherLitters", fields: [fatherId], references: [id])
+  dateOfBirth DateTime
+  kittenCount Int
+  notes       String?
+  createdAt   DateTime @default(now())
 }

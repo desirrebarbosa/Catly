@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View as RNView, Text as RNText, Animated, Image as RNImage, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator, Dimensions } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { View as RNView, Text as RNText, Animated, Image as RNImage, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, PencilIcon } from 'react-native-heroicons/outline';
 import { useCats } from '../context/CatContext';
@@ -10,16 +10,18 @@ const View = RNView as any;
 const Text = RNText as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
+const useRoute = (ReactNavigation as any).useRoute;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.45; // 45% of screen height for header
 const COLLAPSED_HEIGHT = 100;
 
 export const CatDetailsScreen = () => {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { catId } = route.params;
+  const { catId } = (route.params as any);
   const { getCatDetails, deleteCat, currentCat, isLoading } = useCats();
   const [activeTab, setActiveTab] = useState<'Overview' | 'Medical' | 'Family' | 'Notes'>('Overview');
   
@@ -86,11 +88,10 @@ export const CatDetailsScreen = () => {
             className="w-full h-full" 
             resizeMode="cover" 
         />
-        {/* Gradient Overlay for Text Readability */}
         <View className="absolute inset-0 bg-black/20" />
       </Animated.View>
 
-      {/* Navigation Actions (Always on top) */}
+      {/* Navigation Actions */}
       <View 
           style={{ paddingTop: insets.top + 10 }} 
           className="absolute w-full flex-row justify-between px-6 z-20"
@@ -118,10 +119,10 @@ export const CatDetailsScreen = () => {
             { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT - 30 }} // Overlap slightly
-        stickyHeaderIndices={[1]} // Stick the Tabs section
+        contentContainerStyle={{ paddingTop: HEADER_HEIGHT - 30 }}
+        stickyHeaderIndices={[1]} 
       >
-        {/* 1. Cat Info Sheet (Rounded Top) */}
+        {/* Cat Info Sheet */}
         <View className="bg-white rounded-t-[35px] px-6 pt-8 pb-4 shadow-2xl min-h-screen">
             <View className="items-center mb-4 border-b border-gray-100 pb-6">
                 <Text className="text-3xl font-extrabold text-secondary mb-1 tracking-tight">{currentCat.name}</Text>
@@ -139,7 +140,7 @@ export const CatDetailsScreen = () => {
                 </View>
             </View>
 
-            {/* 2. Sticky Tabs (Index 1) */}
+            {/* Sticky Tabs */}
             <View className="bg-white pb-6 pt-2">
                 <View className="flex-row justify-between px-2">
                     {['Overview', 'Medical', 'Family', 'Notes'].map((tab) => (
@@ -155,7 +156,7 @@ export const CatDetailsScreen = () => {
                 </View>
             </View>
 
-            {/* 3. Tab Content */}
+            {/* Tab Content */}
             <View className="pb-32">
                 {activeTab === 'Overview' && (
                 <View className="gap-6">
@@ -165,10 +166,15 @@ export const CatDetailsScreen = () => {
                         <InfoRow label="Spayed/Neutered" value={currentCat.isSpayed ? 'Yes' : 'No'} />
                         <InfoRow label="Color/Markings" value={currentCat.color || 'N/A'} />
                         <InfoRow label="Eye Color" value={currentCat.eyeColor || 'N/A'} />
-                        <InfoRow label="Identifying Features" value={currentCat.features || 'None listed'} />
+                        <InfoRow label="Identifying Features" value={currentCat.features ? 'See Notes' : 'None listed'} />
                     </View>
                     
-                    {/* Delete Button at the bottom */}
+                    <Button 
+                        title="View Adoption History" 
+                        variant="secondary" 
+                        onPress={() => navigation.navigate('AdoptionList', { catId: currentCat.id, catName: currentCat.name })}
+                    />
+
                     <View className="mt-4">
                         <Button 
                             title="Delete Profile" 
@@ -181,19 +187,21 @@ export const CatDetailsScreen = () => {
 
                 {activeTab === 'Medical' && (
                 <View className="gap-4">
-                    <View className="bg-white border border-blue-100 p-5 rounded-3xl shadow-sm">
-                        <Text className="text-blue-500 font-bold text-lg mb-2">Health Log</Text>
-                        <Text className="text-gray-500 mb-4 leading-5">Track vaccinations, checkups, and illness history.</Text>
+                    <View className="bg-white border border-gray-100 p-5 rounded-3xl shadow-sm">
+                        <Text className="text-secondary font-bold text-lg mb-2">Health Timeline</Text>
+                        <Text className="text-gray-400 mb-4 text-sm leading-5">
+                            Keep track of vaccinations, checkups, surgeries, and daily medication.
+                        </Text>
                         <Button 
-                            title="View Records" 
-                            className="bg-blue-500 h-12" 
+                            title="View Health Log" 
+                            className="bg-secondary h-12" 
                             onPress={() => navigation.navigate('HealthLog', { catId: currentCat.id, catName: currentCat.name })}
                         />
                     </View>
-                    <View className="bg-white border border-pink-100 p-5 rounded-3xl shadow-sm flex-row items-center justify-between">
+                    <View className="bg-primaryLight p-5 rounded-3xl border border-primary/20 flex-row items-center justify-between">
                         <View>
-                            <Text className="text-primary font-bold text-lg">Log New Event</Text>
-                            <Text className="text-gray-400 text-xs mt-1">Add checkups, illnesses, etc.</Text>
+                            <Text className="text-primaryDark font-bold text-lg">New Event</Text>
+                            <Text className="text-primaryDark/60 text-xs mt-1 font-medium">Add a record quickly</Text>
                         </View>
                         <TouchableOpacity 
                             className="bg-primary w-12 h-12 rounded-2xl justify-center items-center shadow-md shadow-primary/30"
@@ -207,14 +215,14 @@ export const CatDetailsScreen = () => {
 
                 {activeTab === 'Family' && (
                 <View className="gap-6">
-                    <View className="bg-purple-50 p-6 rounded-3xl">
+                    <View className="bg-purple-50 p-6 rounded-3xl border border-purple-100">
                         <View className="flex-row justify-between items-center mb-6">
                             <Text className="text-purple-600 font-bold text-xl">Lineage</Text>
                             <TouchableOpacity 
-                                className="bg-purple-200 px-3 py-1 rounded-lg"
+                                className="bg-purple-200 px-4 py-2 rounded-xl"
                                 onPress={() => navigation.navigate('FamilyTree', { catId: currentCat.id })}
                             >
-                                <Text className="text-purple-700 font-bold text-xs uppercase">View Tree</Text>
+                                <Text className="text-purple-800 font-bold text-xs uppercase tracking-wide">View Tree</Text>
                             </TouchableOpacity>
                         </View>
                         
@@ -222,13 +230,22 @@ export const CatDetailsScreen = () => {
                         <InfoRow label="Father (Sire)" value={currentCat.father?.name || 'Unknown'} />
                     </View>
                     
+                    {/* Litter Tracking Button */}
+                    {currentCat.gender === 'Female' && (
+                        <Button 
+                            title="Manage Litters" 
+                            variant="secondary"
+                            onPress={() => navigation.navigate('LitterList', { catId: currentCat.id, catName: currentCat.name })}
+                        />
+                    )}
+
                     <View className="bg-white border border-gray-100 p-6 rounded-3xl">
                         <Text className="text-secondary font-bold text-xl mb-4">Offspring</Text>
                         <View className="flex-row flex-wrap gap-2">
                             {[...(currentCat.childrenMother || []), ...(currentCat.childrenFather || [])].map((child: any) => (
                                 <TouchableOpacity 
                                     key={child.id} 
-                                    className="bg-gray-100 px-4 py-3 rounded-2xl"
+                                    className="bg-gray-100 px-4 py-3 rounded-2xl active:bg-gray-200"
                                     onPress={() => {
                                         navigation.push('CatDetails', { catId: child.id });
                                     }}
@@ -245,10 +262,25 @@ export const CatDetailsScreen = () => {
                 )}
                 
                 {activeTab === 'Notes' && (
-                    <View className="bg-yellow-50 p-6 rounded-3xl min-h-[200px] justify-center items-center border border-yellow-100">
-                        <Text className="text-3xl mb-2">📝</Text>
-                        <Text className="text-yellow-700 font-bold text-lg">Notes & Behavior</Text>
-                        <Text className="text-yellow-600/60 mt-2 text-center px-4">Log dietary preferences and behavioral traits here.</Text>
+                    <View className="gap-4">
+                        <View className="bg-yellow-50 p-6 rounded-3xl border border-yellow-100 min-h-[200px]">
+                            <View className="flex-row items-center mb-4">
+                                <Text className="text-2xl mr-3">📝</Text>
+                                <Text className="text-yellow-800 font-bold text-lg">Bio & Notes</Text>
+                            </View>
+                            {currentCat.features ? (
+                                <Text className="text-yellow-900 leading-6 text-base">{currentCat.features}</Text>
+                            ) : (
+                                <Text className="text-yellow-600/60 italic text-center mt-4">
+                                    No notes added yet. Use this space for behavioral traits, dietary needs, or identifying marks.
+                                </Text>
+                            )}
+                        </View>
+                        <Button 
+                            title="Edit Notes" 
+                            variant="secondary" 
+                            onPress={() => navigation.navigate('EditCat', { cat: currentCat })}
+                        />
                     </View>
                 )}
             </View>

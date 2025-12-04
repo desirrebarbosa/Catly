@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator } from 'react-native';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator } from 'react-native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, PlusIcon, TrashIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from 'react-native-heroicons/outline';
 import { 
   HeartIcon, 
   BeakerIcon, 
@@ -11,18 +11,24 @@ import {
   ExclamationTriangleIcon,
   SparklesIcon
 } from 'react-native-heroicons/solid';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import api from '../services/api';
 
 const View = RNView as any;
 const Text = RNText as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const ActivityIndicator = RNActivityIndicator as any;
+const FlatList = RNFlatList as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
+const useRoute = (ReactNavigation as any).useRoute;
+const useFocusEffect = (ReactNavigation as any).useFocusEffect;
 
 export const HealthLogScreen = () => {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { catId, catName } = route.params;
+  const { catId, catName } = (route.params as any);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +44,57 @@ export const HealthLogScreen = () => {
       fetchEvents();
     }, [catId])
   );
+
+  const generatePDF = async () => {
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; }
+            h1 { color: #F5A9C8; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            th { background-color: #f2f2f2; color: #333; }
+            .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; background-color: #999; }
+          </style>
+        </head>
+        <body>
+          <h1>Health Record: ${catName}</h1>
+          <p>Generated on ${new Date().toDateString()}</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Diagnosis</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${events.map(e => `
+                <tr>
+                  <td>${new Date(e.date).toDateString()}</td>
+                  <td><span class="badge" style="background-color: #F5A9C8;">${e.eventType}</span></td>
+                  <td>${e.title}</td>
+                  <td>${e.diagnosis || '-'}</td>
+                  <td>${e.notes || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      Alert.alert('Error', 'Could not generate PDF');
+    }
+  };
 
   const handleDelete = (eventId: string) => {
     Alert.alert("Delete Record", "Are you sure you want to remove this health event?", [
@@ -120,26 +177,33 @@ export const HealthLogScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View 
-        style={{ paddingTop: insets.top, height: insets.top + 70 }} 
-        className="px-6 flex-row items-center justify-between bg-primary z-20"
-      >
-        <TouchableOpacity 
-           onPress={() => navigation.goBack()} 
-           className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
-        >
-           <ChevronLeftIcon size={24} color="white" />
-        </TouchableOpacity>
-        <View className="items-center">
-            <Text className="text-white text-lg font-bold">Health Timeline</Text>
-            <Text className="text-white/80 text-xs font-medium">{catName}</Text>
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-4 flex-row items-center justify-between bg-primary z-20 shadow-sm">
+        <View className="h-14 flex-row items-center justify-between w-full">
+            <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+            >
+            <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
+            </TouchableOpacity>
+            <View className="items-center">
+                <Text className="text-white text-lg font-bold">Health Timeline</Text>
+                <Text className="text-white/80 text-xs font-medium">{catName}</Text>
+            </View>
+            <View className="flex-row gap-2">
+                <TouchableOpacity 
+                    className="bg-white/20 w-10 h-10 rounded-full justify-center items-center"
+                    onPress={generatePDF}
+                >
+                    <ArrowDownTrayIcon size={20} color="white" strokeWidth={2.5} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-lg shadow-black/10"
+                onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
+                >
+                <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
+                </TouchableOpacity>
+            </View>
         </View>
-        <TouchableOpacity 
-           className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-lg shadow-black/10"
-           onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
-        >
-           <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
-        </TouchableOpacity>
       </View>
 
       <View className="flex-1 bg-gray-50 pt-8">
@@ -148,7 +212,7 @@ export const HealthLogScreen = () => {
         ) : (
             <FlatList
             data={events}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item: any) => item.id}
             renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}

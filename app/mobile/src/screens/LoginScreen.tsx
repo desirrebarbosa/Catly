@@ -1,8 +1,12 @@
+
 import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, Image as RNImage, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
+
+// Fix: Declare require to avoid TypeScript errors when node types are missing
+declare var require: any;
 
 const View = RNView as any;
 const Text = RNText as any;
@@ -10,9 +14,10 @@ const TextInput = RNTextInput as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
 
 export const LoginScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,9 +25,12 @@ export const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!email || !password) return Alert.alert('Error', 'Please fill in all fields');
+    
     setLoading(true);
-    const result = await login(email, password);
+    // Trim email to remove accidental trailing spaces from keyboard
+    const result = await login(email.trim(), password);
     setLoading(false);
+    
     if (!result.success) Alert.alert('Login Failed', result.error);
   };
 

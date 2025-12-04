@@ -1,16 +1,20 @@
 import React from 'react';
 import { View as RNView, Text as RNText, Image as RNImage, TouchableOpacity as RNTouchableOpacity, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
+
+// Fix: Declare require to avoid TypeScript errors when node types are missing
+declare var require: any;
 
 const View = RNView as any;
 const Text = RNText as any;
 const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
 
 const { width } = Dimensions.get('window');
 
 export const Welcome2Screen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
 
   return (
     <View className="flex-1 bg-primary justify-center items-center">

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, Modal, Image as RNImage } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, CameraIcon, CalendarDaysIcon, ScaleIcon } from 'react-native-heroicons/outline';
 import * as ImagePicker from 'expo-image-picker';
@@ -16,6 +15,7 @@ const TextInput = RNTextInput as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const Image = RNImage as any;
+const useNavigation = (ReactNavigation as any).useNavigation;
 
 export const AddCatScreen = () => {
   const navigation = useNavigation();
@@ -121,18 +121,17 @@ export const AddCatScreen = () => {
       <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
 
       {/* Navigation Header */}
-      <View 
-        style={{ paddingTop: insets.top, height: insets.top + 60 }} 
-        className="px-6 flex-row items-center justify-between z-20"
-      >
-        <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
-        >
-          <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-white tracking-wide">Add Profile</Text>
-        <View className="w-10" />
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
+        <View className="h-14 flex-row items-center justify-between">
+            <TouchableOpacity 
+                onPress={() => navigation.goBack()} 
+                className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+            >
+            <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
+            </TouchableOpacity>
+            <Text className="text-xl font-bold text-white tracking-wide">Add Profile</Text>
+            <View className="w-10" />
+        </View>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -140,7 +139,7 @@ export const AddCatScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 40 }}
         >
-            <View className="h-32" /> 
+            <View className="h-24" /> 
 
             {/* Main Content Card */}
             <View className="bg-white rounded-t-[40px] px-6 pt-0 shadow-sm min-h-screen">
@@ -303,8 +302,6 @@ export const AddCatScreen = () => {
     </View>
   );
 };
-
-// --- Standardized Components ---
 
 const SectionTitle = ({ title }: { title: string }) => (
     <Text className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-1 ml-1">{title}</Text>
