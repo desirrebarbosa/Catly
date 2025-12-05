@@ -9,6 +9,7 @@ import { scheduleRouter } from './routes/schedule.routes';
 import { contactRouter } from './routes/contact.routes';
 import { adoptionRouter } from './routes/adoption.routes';
 import { litterRouter } from './routes/litter.routes';
+import { inventoryRouter } from './routes/inventory.routes';
 import { runAutoArchive } from './controllers/cat.controller';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use('/api/schedules', scheduleRouter);
 app.use('/api/contacts', contactRouter);
 app.use('/api/adoptions', adoptionRouter);
 app.use('/api/litters', litterRouter);
+app.use('/api/inventory', inventoryRouter);
 
 app.get('/', (req, res) => {
   res.send('🐱 Catly API is Purring!');

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -16,18 +17,23 @@ const TouchableOpacity = RNTouchableOpacity as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const Image = RNImage as any;
 const useNavigation = (ReactNavigation as any).useNavigation;
+const useRoute = (ReactNavigation as any).useRoute;
 
 export const AddCatScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { addCat, cats, fetchCats, isLoading } = useCats();
+  const { addCat, cats, fetchCats } = useCats();
   
+  // Params for "Add Kitten" flow
+  const { prefillMotherId, prefillFatherId, prefillDOB, returnToLitter } = (route.params as any) || {};
+
   // Form State
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
   const [breed, setBreed] = useState('');
   const [gender, setGender] = useState('Male');
-  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthDate, setBirthDate] = useState(prefillDOB ? new Date(prefillDOB) : new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [weight, setWeight] = useState('');
   const [color, setColor] = useState('');
@@ -36,8 +42,8 @@ export const AddCatScreen = () => {
   const [features, setFeatures] = useState('');
   
   const [photo, setPhoto] = useState<string | null>(null);
-  const [motherId, setMotherId] = useState<string | null>(null);
-  const [fatherId, setFatherId] = useState<string | null>(null);
+  const [motherId, setMotherId] = useState<string | null>(prefillMotherId || null);
+  const [fatherId, setFatherId] = useState<string | null>(prefillFatherId || null);
   
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pickerType, setPickerType] = useState<'mother' | 'father'>('mother');
@@ -92,9 +98,14 @@ export const AddCatScreen = () => {
           isSpayed, motherId, fatherId, photoUrl: photo 
       });
       setIsSubmitting(false);
-      Alert.alert('Success', 'Profile created successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      
+      if (returnToLitter) {
+          navigation.goBack(); // Return to AddLitterScreen
+      } else {
+          Alert.alert('Success', 'Profile created successfully!', [
+            { text: 'OK', onPress: () => navigation.goBack() }
+          ]);
+      }
     } catch (e: any) {
       setIsSubmitting(false);
       Alert.alert('Error', e.message || 'Failed to add cat');
@@ -117,10 +128,8 @@ export const AddCatScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Pink Background Header Layer */}
       <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
 
-      {/* Navigation Header */}
       <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
         <View className="h-14 flex-row items-center justify-between">
             <TouchableOpacity 
@@ -129,7 +138,9 @@ export const AddCatScreen = () => {
             >
             <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
-            <Text className="text-xl font-bold text-white tracking-wide">Add Profile</Text>
+            <Text className="text-xl font-bold text-white tracking-wide">
+                {returnToLitter ? 'Add Kitten' : 'Add Profile'}
+            </Text>
             <View className="w-10" />
         </View>
       </View>
@@ -141,10 +152,8 @@ export const AddCatScreen = () => {
         >
             <View className="h-24" /> 
 
-            {/* Main Content Card */}
             <View className="bg-white rounded-t-[40px] px-6 pt-0 shadow-sm min-h-screen">
                 
-                {/* Floating Avatar */}
                 <View className="items-center -mt-16 mb-8">
                     <TouchableOpacity onPress={pickImage} className="active:opacity-80 relative shadow-xl shadow-black/10">
                         <View className="w-32 h-32 rounded-full bg-gray-50 border-[6px] border-white justify-center items-center overflow-hidden">
@@ -160,7 +169,6 @@ export const AddCatScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Form Fields */}
                 <View className="gap-6">
                     <View className="gap-4">
                         <SectionTitle title="Identity" />
@@ -265,7 +273,7 @@ export const AddCatScreen = () => {
                     </View>
 
                     <View className="mt-4 mb-6">
-                        <Button title="Create Profile" onPress={handleSubmit} loading={isSubmitting} className="shadow-lg shadow-primary/30" />
+                        <Button title={returnToLitter ? "Save Kitten" : "Create Profile"} onPress={handleSubmit} loading={isSubmitting} className="shadow-lg shadow-primary/30" />
                     </View>
                 </View>
             </View>

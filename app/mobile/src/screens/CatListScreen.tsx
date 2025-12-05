@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput, RefreshControl } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -59,14 +60,14 @@ export const CatListScreen = () => {
 
   const renderCatItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
-      className={`rounded-3xl p-4 mb-4 flex-row items-center shadow-sm bg-white border border-gray-100 ${item.isArchived ? 'opacity-60' : ''}`}
+      className={`rounded-[24px] p-4 mb-4 flex-row items-center shadow-sm bg-white border border-gray-100 ${item.isArchived ? 'opacity-60' : ''}`}
       onPress={() => navigation.navigate('CatDetails', { catId: item.id })}
       style={{ elevation: 2 }}
     >
-      <View className="w-20 h-20 rounded-full border-2 border-primary/20 p-0.5 bg-gray-50">
+      <View className="w-20 h-20 rounded-[20px] border-2 border-primary/20 p-0.5 bg-gray-50">
           <Image 
             source={{ uri: item.photoUrl || 'https://placekitten.com/200/200' }} 
-            className="w-full h-full rounded-full" 
+            className="w-full h-full rounded-[16px]" 
             resizeMode="cover"
           />
       </View>
@@ -159,7 +160,7 @@ export const CatListScreen = () => {
                 extraData={cats}
                 keyExtractor={(item: any) => item.id}
                 renderItem={renderCatItem}
-                contentContainerStyle={{ paddingBottom: 80 }}
+                contentContainerStyle={{ paddingBottom: 100 }}
                 refreshControl={
                     <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#F5A9C8" />
                 }

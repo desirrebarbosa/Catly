@@ -5,21 +5,37 @@ import { prisma } from '../config/db';
 export const createSchedule = async (req: any, res: any) => {
   try {
     const userId = req.userId;
-    const { catId, taskName, time, recurrence } = req.body;
+    const { catIds, taskName, time, recurrence } = req.body;
 
-    if (!catId) return res.status(400).json({ success: false, error: 'Cat is required for schedule' });
+    // catIds is now an array
+    if (!catIds || !Array.isArray(catIds) || catIds.length === 0) {
+        return res.status(400).json({ success: false, error: 'At least one cat is required' });
+    }
 
-    // Verify ownership of cat
-    const cat = await prisma.cat.findFirst({ where: { id: catId, ownerId: userId } });
-    if (!cat) return res.status(404).json({ success: false, error: 'Cat not found or unauthorized' });
+    // Verify ownership of all cats
+    const count = await prisma.cat.count({
+        where: { 
+            id: { in: catIds },
+            ownerId: userId 
+        }
+    });
+
+    if (count !== catIds.length) {
+        return res.status(404).json({ success: false, error: 'One or more cats not found or unauthorized' });
+    }
 
     const newSchedule = await prisma.schedule.create({
       data: {
         userId,
-        catId,
+        cats: {
+            connect: catIds.map(id => ({ id }))
+        },
         taskName,
         time,
         recurrence
+      },
+      include: {
+          cats: { select: { id: true, name: true, photoUrl: true } }
       }
     });
 
@@ -30,14 +46,44 @@ export const createSchedule = async (req: any, res: any) => {
   }
 };
 
+export const updateSchedule = async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const { catIds, taskName, time, recurrence } = req.body;
+  
+      const schedule = await prisma.schedule.findFirst({ where: { id, userId } });
+      if (!schedule) return res.status(404).json({ success: false, error: 'Schedule not found' });
+  
+      const updatedSchedule = await prisma.schedule.update({
+        where: { id },
+        data: {
+          taskName,
+          time,
+          recurrence,
+          cats: catIds ? {
+              set: catIds.map((cid: string) => ({ id: cid }))
+          } : undefined
+        },
+        include: {
+            cats: { select: { id: true, name: true, photoUrl: true } }
+        }
+      });
+  
+      res.json({ success: true, data: { schedule: updatedSchedule } });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Update failed' });
+    }
+};
+
 export const getSchedules = async (req: any, res: any) => {
   try {
     const userId = req.userId;
     const schedules = await prisma.schedule.findMany({
       where: { userId },
       include: {
-        cat: {
-            select: { name: true, photoUrl: true }
+        cats: {
+            select: { id: true, name: true, photoUrl: true }
         }
       },
       orderBy: { time: 'asc' }

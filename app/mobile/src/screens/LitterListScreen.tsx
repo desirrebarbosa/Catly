@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -38,13 +39,13 @@ export const LitterListScreen = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between">
+    <View className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between">
        <View>
           <Text className="text-secondary font-bold text-lg">Litter of {new Date(item.dateOfBirth).toDateString()}</Text>
           <Text className="text-primary font-bold text-sm">{item.kittenCount} Kittens</Text>
           {item.father && <Text className="text-gray-400 text-xs mt-1">Sire: {item.father.name}</Text>}
        </View>
-       <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 opacity-50">
+       <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-3 bg-gray-50 rounded-2xl">
            <TrashIcon size={20} color="#9CA3AF" />
        </TouchableOpacity>
     </View>
@@ -52,17 +53,17 @@ export const LitterListScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary z-10 shadow-sm">
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-6 bg-primary z-10 shadow-sm rounded-b-[32px]">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <View className="items-center">
                 <Text className="text-white text-xl font-bold">Litter History</Text>
                 <Text className="text-white/80 text-xs">{catName}</Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('AddLitter', { catId })} className="w-10 h-10 bg-white items-center justify-center rounded-full shadow-sm">
-                <PlusIcon color="#F5A9C8" size={24} strokeWidth={2.5} />
+            <TouchableOpacity onPress={() => navigation.navigate('AddLitter', { catId })} className="w-12 h-12 bg-white items-center justify-center rounded-2xl shadow-sm">
+                <PlusIcon color="#F5A9C8" size={26} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
       </View>

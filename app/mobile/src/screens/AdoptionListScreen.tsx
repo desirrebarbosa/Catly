@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -38,7 +39,7 @@ export const AdoptionListScreen = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 shadow-sm">
+    <View className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm">
        <View className="flex-row justify-between items-start">
           <View>
               <Text className="text-primary font-bold text-xs uppercase mb-1">{item.type}</Text>
@@ -46,8 +47,8 @@ export const AdoptionListScreen = () => {
               <Text className="text-gray-500 text-sm mt-1">To: {item.adopterName || 'Unknown'}</Text>
               {item.notes && <Text className="text-gray-400 text-xs mt-2 italic">"{item.notes}"</Text>}
           </View>
-          <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2">
-             <TrashIcon size={20} color="#E5E7EB" />
+          <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-3 bg-gray-50 rounded-2xl">
+             <TrashIcon size={20} color="#9CA3AF" />
           </TouchableOpacity>
        </View>
     </View>
@@ -55,17 +56,19 @@ export const AdoptionListScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View style={{ paddingTop: insets.top, height: insets.top + 60 }} className="px-6 flex-row items-center justify-between bg-primary">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full">
-             <ChevronLeftIcon color="white" size={24} />
-          </TouchableOpacity>
-          <View className="items-center">
-             <Text className="text-white text-xl font-bold">Adoption History</Text>
-             <Text className="text-white/80 text-xs">{catName}</Text>
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-6 bg-primary z-10 shadow-sm rounded-b-[32px]">
+          <View className="h-14 flex-row items-center justify-between">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
+                <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
+            </TouchableOpacity>
+            <View className="items-center">
+                <Text className="text-white text-xl font-bold">Adoption History</Text>
+                <Text className="text-white/80 text-xs">{catName}</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('AddAdoption', { catId })} className="w-12 h-12 bg-white items-center justify-center rounded-2xl shadow-sm">
+                <PlusIcon color="#F5A9C8" size={26} strokeWidth={2.5} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('AddAdoption', { catId })} className="w-10 h-10 bg-white items-center justify-center rounded-full">
-             <PlusIcon color="#F5A9C8" size={24} />
-          </TouchableOpacity>
       </View>
       <View className="flex-1 bg-gray-50 pt-6 px-6">
         <FlatList 
@@ -75,7 +78,7 @@ export const AdoptionListScreen = () => {
             ListEmptyComponent={
                 <View className="items-center mt-20 opacity-50">
                     <HomeModernIcon size={50} color="#D1D5DB" />
-                    <Text className="text-gray-400 mt-2">No adoption records.</Text>
+                    <Text className="text-gray-400 mt-2 font-medium">No adoption records.</Text>
                 </View>
             }
         />

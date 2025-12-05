@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import * as contactController from '../controllers/contact.controller';
 import { authenticate } from '../middleware/auth';

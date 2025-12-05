@@ -6,7 +6,7 @@ export const createLitter = async (req: any, res: any) => {
   try {
     const userId = req.userId;
     const { catId } = req.params; // Mother's ID
-    const { dateOfBirth, kittenCount, fatherId, notes } = req.body;
+    const { dateOfBirth, kittenCount, fatherId, notes, kittenIds } = req.body;
 
     const cat = await prisma.cat.findFirst({ where: { id: catId, ownerId: userId } });
     if (!cat) return res.status(404).json({ success: false, error: 'Cat not found' });
@@ -17,7 +17,14 @@ export const createLitter = async (req: any, res: any) => {
         fatherId: fatherId || null,
         dateOfBirth: new Date(dateOfBirth),
         kittenCount: Number(kittenCount),
-        notes
+        notes,
+        kittens: kittenIds ? {
+            connect: kittenIds.map((id: string) => ({ id }))
+        } : undefined
+      },
+      include: {
+          kittens: true,
+          father: true
       }
     });
 
@@ -33,7 +40,10 @@ export const getLitters = async (req: any, res: any) => {
     const { catId } = req.params;
     const litters = await prisma.litter.findMany({
       where: { motherId: catId },
-      include: { father: true },
+      include: { 
+          father: true,
+          kittens: true // Include actual kitten profiles
+      },
       orderBy: { dateOfBirth: 'desc' }
     });
     res.json({ success: true, data: { litters } });

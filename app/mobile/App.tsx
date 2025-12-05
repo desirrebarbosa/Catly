@@ -5,8 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CatProvider } from './src/context/CatContext';
-import { HomeIcon, CalendarDaysIcon, UserGroupIcon } from 'react-native-heroicons/solid';
-import { UserCircleIcon } from 'react-native-heroicons/solid'; // Changed import for Profile
+import { HomeIcon, CalendarDaysIcon, UserGroupIcon, UserCircleIcon, CubeIcon } from 'react-native-heroicons/solid';
 import { View as RNView } from 'react-native';
 
 const View = RNView as any;
@@ -34,6 +33,8 @@ import { AddAdoptionScreen } from './src/screens/AddAdoptionScreen';
 import { LitterListScreen } from './src/screens/LitterListScreen';
 import { AddLitterScreen } from './src/screens/AddLitterScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { InventoryListScreen } from './src/screens/InventoryListScreen';
+import { AddInventoryScreen } from './src/screens/AddInventoryScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,6 +87,14 @@ const BottomTabs = () => {
         }}
       />
       <TabScreen 
+        name="InventoryList" 
+        component={InventoryListScreen} 
+        options={{
+          tabBarLabel: 'Inventory',
+          tabBarIcon: ({ color, size }: any) => <CubeIcon color={color} size={size} />
+        }}
+      />
+      <TabScreen 
         name="ContactList" 
         component={ContactListScreen} 
         options={{
@@ -119,17 +128,13 @@ const AppNavigation = () => {
           <StackScreen name="Login" component={LoginScreen} />
           <StackScreen name="Signup" component={SignupScreen} />
           <StackScreen name="ForgotPassword" component={ForgotPasswordScreen} />
-          {/* SetupProfile is strictly for new users, managed by isNewUser state */}
         </>
       ) : isNewUser ? (
-         // If user is logged in but flagged as new, force them to Setup Profile
          <StackScreen name="SetupProfile" component={SetupProfileScreen} />
       ) : (
         <>
-          {/* Main Tabs */}
           <StackScreen name="MainTabs" component={BottomTabs} />
           
-          {/* Modals & Detail Screens (Push over tabs) */}
           <StackScreen name="AddCat" component={AddCatScreen} />
           <StackScreen name="CatDetails" component={CatDetailsScreen} />
           <StackScreen name="EditCat" component={EditCatScreen} />
@@ -142,8 +147,8 @@ const AppNavigation = () => {
           <StackScreen name="AddAdoption" component={AddAdoptionScreen} />
           <StackScreen name="LitterList" component={LitterListScreen} />
           <StackScreen name="AddLitter" component={AddLitterScreen} />
+          <StackScreen name="AddInventory" component={AddInventoryScreen} />
           
-          {/* Re-using SetupProfile for Editing */}
           <StackScreen name="EditProfile" component={SetupProfileScreen} />
         </>
       )}

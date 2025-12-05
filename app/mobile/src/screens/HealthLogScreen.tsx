@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -132,7 +133,7 @@ export const HealthLogScreen = () => {
         <View className="flex-row px-6">
             {/* Timeline Left */}
             <View className="items-center mr-4 w-8">
-                <View className={`w-8 h-8 rounded-full items-center justify-center shadow-sm z-10 ${meta.color}`}>
+                <View className={`w-8 h-8 rounded-xl items-center justify-center shadow-sm z-10 ${meta.color}`}>
                     {meta.icon}
                 </View>
                 {!isLast && <View className="w-0.5 flex-1 bg-gray-200 my-1" />}
@@ -140,7 +141,7 @@ export const HealthLogScreen = () => {
 
             {/* Content Card */}
             <View className="flex-1 pb-6">
-                <View className={`bg-white p-4 rounded-2xl border shadow-sm ${meta.border}`}>
+                <View className={`bg-white p-4 rounded-[24px] border shadow-sm ${meta.border}`}>
                     <View className="flex-row justify-between items-start mb-1">
                         <View className="flex-1 mr-2">
                              <Text className="text-secondary font-bold text-lg">{item.title}</Text>
@@ -148,7 +149,7 @@ export const HealthLogScreen = () => {
                                 {dateObj.toDateString()}
                              </Text>
                         </View>
-                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50">
+                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50 bg-gray-50 rounded-xl">
                             <TrashIcon size={18} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>
@@ -177,11 +178,11 @@ export const HealthLogScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View style={{ paddingTop: insets.top }} className="px-6 pb-4 flex-row items-center justify-between bg-primary z-20 shadow-sm">
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-6 bg-primary z-20 shadow-sm rounded-b-[32px]">
         <View className="h-14 flex-row items-center justify-between w-full">
             <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+            className="w-12 h-12 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
             >
             <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
             </TouchableOpacity>
@@ -191,16 +192,16 @@ export const HealthLogScreen = () => {
             </View>
             <View className="flex-row gap-2">
                 <TouchableOpacity 
-                    className="bg-white/20 w-10 h-10 rounded-full justify-center items-center"
+                    className="bg-white/20 w-12 h-12 rounded-2xl justify-center items-center"
                     onPress={generatePDF}
                 >
                     <ArrowDownTrayIcon size={20} color="white" strokeWidth={2.5} />
                 </TouchableOpacity>
                 <TouchableOpacity 
-                className="bg-white w-10 h-10 rounded-full justify-center items-center shadow-lg shadow-black/10"
+                className="bg-white w-12 h-12 rounded-2xl justify-center items-center shadow-lg shadow-black/10"
                 onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
                 >
-                <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
+                <PlusIcon size={26} color="#F5A9C8" strokeWidth={3} />
                 </TouchableOpacity>
             </View>
         </View>
