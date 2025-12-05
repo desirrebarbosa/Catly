@@ -46,6 +46,31 @@ export const getContacts = async (req: any, res: any) => {
   }
 };
 
+export const updateContact = async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const { name, role, phone, email } = req.body;
+  
+      const contact = await prisma.contact.findFirst({ where: { id, ownerId: userId } });
+      if (!contact) return res.status(404).json({ success: false, error: 'Contact not found' });
+  
+      const updatedContact = await prisma.contact.update({
+        where: { id },
+        data: {
+          name,
+          role,
+          phone,
+          email
+        }
+      });
+  
+      res.json({ success: true, data: { contact: updatedContact } });
+    } catch (error) {
+      res.status(500).json({ success: false, error: 'Update failed' });
+    }
+};
+
 export const deleteContact = async (req: any, res: any) => {
   try {
     const { id } = req.params;

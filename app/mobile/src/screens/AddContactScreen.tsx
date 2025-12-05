@@ -25,7 +25,8 @@ export const AddContactScreen = () => {
   const { contact } = (route.params as any) || {};
 
   const [name, setName] = useState('');
-  const [role, setRole] = useState('Vet');
+  const [role, setRole] = useState('Veterinarian');
+  const [customRole, setCustomRole] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,18 +34,27 @@ export const AddContactScreen = () => {
   useEffect(() => {
     if (contact) {
       setName(contact.name);
-      setRole(contact.role);
       setPhone(contact.phone || '');
       setEmail(contact.email || '');
+      
+      if (ROLES.includes(contact.role)) {
+          setRole(contact.role);
+      } else {
+          setRole('Other');
+          setCustomRole(contact.role);
+      }
     }
   }, [contact]);
 
   const handleSave = async () => {
       if(!name) return Alert.alert("Error", "Name is required");
+      
+      const finalRole = role === 'Other' ? (customRole || 'Other') : role;
+
       setLoading(true);
       
       let res;
-      const payload = { name, role, phone, email };
+      const payload = { name, role: finalRole, phone, email };
 
       if (contact) {
           res = await api.put(`/contacts/${contact.id}`, payload);
@@ -90,6 +100,14 @@ export const AddContactScreen = () => {
                             </TouchableOpacity>
                         ))}
                     </View>
+                    {role === 'Other' && (
+                        <TextInput 
+                            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary mt-3" 
+                            placeholder="Specify Role..."
+                            value={customRole} 
+                            onChangeText={setCustomRole} 
+                        />
+                    )}
                 </View>
 
                 <View>

@@ -1,3 +1,4 @@
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/env';
@@ -6,7 +7,7 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
-export const authenticate = (req: any, res: any, next: NextFunction) => {
+export const authenticate = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

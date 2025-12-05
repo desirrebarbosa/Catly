@@ -39,7 +39,11 @@ export const AdoptionListScreen = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm">
+    <TouchableOpacity 
+        onLongPress={() => navigation.navigate('AddAdoption', { catId, adoption: item })}
+        activeOpacity={0.8}
+        className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm"
+    >
        <View className="flex-row justify-between items-start">
           <View>
               <Text className="text-primary font-bold text-xs uppercase mb-1">{item.type}</Text>
@@ -51,7 +55,7 @@ export const AdoptionListScreen = () => {
              <TrashIcon size={20} color="#9CA3AF" />
           </TouchableOpacity>
        </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -69,6 +73,7 @@ export const AdoptionListScreen = () => {
                 <PlusIcon color="#F5A9C8" size={26} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
+          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press a record to edit</Text>
       </View>
       <View className="flex-1 bg-gray-50 pt-6 px-6">
         <FlatList 

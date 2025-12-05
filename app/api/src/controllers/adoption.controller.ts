@@ -65,6 +65,38 @@ export const createAdoption = async (req: any, res: any) => {
   }
 };
 
+export const updateAdoption = async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const userId = req.userId;
+        const { date, type, adopterName, contactId, notes } = req.body;
+
+        const record = await prisma.adoptionRecord.findUnique({ 
+            where: { id },
+            include: { cat: true }
+        });
+
+        if (!record || record.cat.ownerId !== userId) {
+            return res.status(404).json({ success: false, error: 'Record not found or unauthorized' });
+        }
+
+        const updatedRecord = await prisma.adoptionRecord.update({
+            where: { id },
+            data: {
+                date: new Date(date),
+                type,
+                adopterName,
+                contactId: contactId || null,
+                notes
+            }
+        });
+
+        res.json({ success: true, data: { adoption: updatedRecord } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Update failed' });
+    }
+};
+
 export const getAdoptions = async (req: any, res: any) => {
   try {
     const { catId } = req.params;

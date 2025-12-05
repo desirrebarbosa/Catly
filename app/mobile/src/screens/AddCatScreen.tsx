@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, CameraIcon, CalendarDaysIcon, ScaleIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, CameraIcon, CalendarDaysIcon, ScaleIcon, PlusIcon } from 'react-native-heroicons/outline';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCats } from '../context/CatContext';
@@ -40,21 +40,24 @@ export const AddCatScreen = () => {
   const [eyeColor, setEyeColor] = useState('');
   const [isSpayed, setIsSpayed] = useState(false);
   const [features, setFeatures] = useState('');
-  
   const [photo, setPhoto] = useState<string | null>(null);
+  
+  // Lineage
   const [motherId, setMotherId] = useState<string | null>(prefillMotherId || null);
   const [fatherId, setFatherId] = useState<string | null>(prefillFatherId || null);
   
+  const [loading, setLoading] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pickerType, setPickerType] = useState<'mother' | 'father'>('mother');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => { fetchCats(); }, []);
+  useEffect(() => {
+      fetchCats();
+  }, []);
 
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Fixed deprecation
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
@@ -80,69 +83,64 @@ export const AddCatScreen = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim()) return Alert.alert('Missing Info', "Name is required.");
+  const handleSave = async () => {
+    if (!name.trim()) return Alert.alert('Missing Info', 'Cat name is required.');
     
     let weightValue = 0;
     if (weight.trim()) {
-        const parsed = parseFloat(weight);
-        if (isNaN(parsed)) return Alert.alert('Invalid Input', "Weight must be a valid number.");
-        weightValue = parsed;
+      weightValue = parseFloat(weight);
+      if (isNaN(weightValue)) return Alert.alert('Invalid Input', "Weight must be a number.");
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
     try {
-      await addCat({ 
-          name, nickname, breed, gender, 
-          weight: weightValue, 
-          birthDate: birthDate.toISOString(),
-          color, eyeColor, features,
-          isSpayed, motherId, fatherId, photoUrl: photo 
+      await addCat({
+        name, nickname, breed, gender,
+        weight: weightValue,
+        birthDate: birthDate.toISOString(),
+        color, eyeColor, features,
+        isSpayed,
+        motherId, fatherId,
+        photoUrl: photo
       });
-      setIsSubmitting(false);
-      
-      if (returnToLitter) {
-          navigation.goBack(); // Return to AddLitterScreen
-      } else {
-          Alert.alert('Success', 'Profile created successfully!', [
-            { text: 'OK', onPress: () => navigation.goBack() }
-          ]);
-      }
+      setLoading(false);
+      navigation.goBack();
     } catch (e: any) {
-      setIsSubmitting(false);
-      Alert.alert('Error', e.message || 'Failed to add cat');
+      setLoading(false);
+      Alert.alert('Error', 'Failed to add cat');
     }
   };
 
   const openPicker = (type: 'mother' | 'father') => {
-      setPickerType(type);
-      setPickerVisible(true);
+    setPickerType(type);
+    setPickerVisible(true);
   };
 
-  const selectParent = (catId: string) => {
-      pickerType === 'mother' ? setMotherId(catId) : setFatherId(catId);
-      setPickerVisible(false);
+  const selectParent = (id: string) => {
+    if (pickerType === 'mother') setMotherId(id);
+    else setFatherId(id);
+    setPickerVisible(false);
   };
 
   const potentialParents = cats.filter(c => 
-      pickerType === 'mother' ? c.gender === 'Female' : c.gender === 'Male'
+    (pickerType === 'mother' ? c.gender === 'Female' : c.gender === 'Male')
   );
 
   return (
     <View className="flex-1 bg-white">
+      {/* Header Background */}
       <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
 
+      {/* Header */}
       <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
         <View className="h-14 flex-row items-center justify-between">
             <TouchableOpacity 
-                onPress={() => navigation.goBack()} 
+                onPress={() => navigation.goBack()}
                 className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
             >
-            <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
+                <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
             </TouchableOpacity>
-            <Text className="text-xl font-bold text-white tracking-wide">
-                {returnToLitter ? 'Add Kitten' : 'Add Profile'}
-            </Text>
+            <Text className="text-white text-xl font-bold tracking-wide">Add New Cat</Text>
             <View className="w-10" />
         </View>
       </View>
@@ -152,55 +150,59 @@ export const AddCatScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 40 }}
         >
-            <View className="h-24" /> 
+            <View className="h-24" />
 
+            {/* Main Card */}
             <View className="bg-white rounded-t-[40px] px-6 pt-0 shadow-sm min-h-screen">
                 
+                {/* Photo Picker */}
                 <View className="items-center -mt-16 mb-8">
-                    <TouchableOpacity onPress={pickImage} className="active:opacity-80 relative shadow-xl shadow-black/10">
+                    <TouchableOpacity onPress={pickImage} className="active:opacity-90 relative shadow-xl shadow-black/10">
                         <View className="w-32 h-32 rounded-full bg-gray-50 border-[6px] border-white justify-center items-center overflow-hidden">
                             {photo ? (
                                 <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
                             ) : (
-                                <CameraIcon size={40} color="#E5E7EB" />
+                                <CameraIcon size={40} color="#D1D5DB" />
                             )}
                         </View>
-                        <View className="absolute bottom-1 right-1 bg-primary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
-                            <Text className="text-white font-bold text-lg leading-none mb-0.5">+</Text>
+                        <View className="absolute bottom-1 right-1 bg-secondary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                            <PlusIcon size={16} color="white" />
                         </View>
                     </TouchableOpacity>
                 </View>
-
+        
                 <View className="gap-6">
+                    {/* Basic Info */}
                     <View className="gap-4">
                         <SectionTitle title="Identity" />
                         <InputGroup label="Name" value={name} onChangeText={setName} placeholder="e.g. Luna" />
-                        <InputGroup label="Nickname" value={nickname} onChangeText={setNickname} placeholder="e.g. Lulu" />
+                        <InputGroup label="Nickname (Optional)" value={nickname} onChangeText={setNickname} placeholder="e.g. Lulu" />
                     </View>
-
+                    
+                    {/* Appearance */}
                     <View className="gap-4">
-                        <SectionTitle title="Physical Attributes" />
+                        <SectionTitle title="Details" />
                         
                         <View className="flex-row gap-4">
                             <View className="flex-[1.5]">
-                                <InputGroup label="Breed" value={breed} onChangeText={setBreed} placeholder="Siamese" />
+                                <InputGroup label="Breed" value={breed} onChangeText={setBreed} placeholder="e.g. Siamese" />
                             </View>
                             <View className="flex-1">
                                 <Label text="Weight (kg)" />
                                 <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 w-full">
                                     <ScaleIcon size={18} color="#9CA3AF" />
-                                    <TextInput
+                                    <TextInput 
                                         className="flex-1 ml-2 text-base text-secondary h-full font-medium"
                                         value={weight}
                                         onChangeText={setWeight}
-                                        placeholder="0.0"
                                         keyboardType="numeric"
-                                        placeholderTextColor="#D1D5DB"
+                                        placeholder="0.0"
                                     />
                                 </View>
                             </View>
                         </View>
 
+                        {/* Gender */}
                         <View className="w-full">
                             <Label text="Gender" />
                             <View className="flex-row bg-gray-50 p-1 rounded-2xl border border-gray-100 h-14 w-full">
@@ -216,6 +218,7 @@ export const AddCatScreen = () => {
                             </View>
                         </View>
 
+                        {/* DOB */}
                         <View className="w-full">
                             <Label text="Date of Birth" />
                             <TouchableOpacity 
@@ -242,17 +245,17 @@ export const AddCatScreen = () => {
                                                 onPress={() => setShowDatePicker(false)}
                                                 className="bg-primary py-3 rounded-2xl items-center mt-2"
                                             >
-                                                <Text className="text-white font-bold text-sm">Done</Text>
+                                                <Text className="text-white font-bold text-sm">Confirm Date</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>
                                 </Modal>
                             )}
                         </View>
-
+                        
                         <View className="flex-row gap-4">
-                            <View className="flex-1"><InputGroup label="Color" value={color} onChangeText={setColor} placeholder="Calico" /></View>
-                            <View className="flex-1"><InputGroup label="Eye Color" value={eyeColor} onChangeText={setEyeColor} placeholder="Green" /></View>
+                            <View className="flex-1"><InputGroup label="Color" value={color} onChangeText={setColor} placeholder="e.g. Orange" /></View>
+                            <View className="flex-1"><InputGroup label="Eye Color" value={eyeColor} onChangeText={setEyeColor} placeholder="e.g. Green" /></View>
                         </View>
 
                         <View className="w-full">
@@ -266,51 +269,53 @@ export const AddCatScreen = () => {
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <InputGroup label="Identifying Features" value={features} onChangeText={setFeatures} placeholder="White tip on tail..." multiline />
+                        
+                        <InputGroup label="Bio & Features" value={features} onChangeText={setFeatures} multiline placeholder="Distinct markings, personality traits..." />
                     </View>
 
+                    {/* Family - Pre-filled if coming from Litter screen */}
                     <View className="gap-4">
                         <SectionTitle title="Lineage" />
                         <View className="flex-col gap-4 w-full">
                             <ParentSelector 
-                                label="Mother" 
+                                label="Mother (Dam)" 
                                 value={motherId ? cats.find(c => c.id === motherId)?.name : null} 
                                 onPress={() => openPicker('mother')} 
                             />
                             <ParentSelector 
-                                label="Father" 
+                                label="Father (Sire)" 
                                 value={fatherId ? cats.find(c => c.id === fatherId)?.name : null} 
                                 onPress={() => openPicker('father')} 
                             />
                         </View>
                     </View>
-
+                    
                     <View className="mt-4 mb-6">
-                        <Button title={returnToLitter ? "Save Kitten" : "Create Profile"} onPress={handleSubmit} loading={isSubmitting} className="shadow-lg shadow-primary/30" />
+                        <Button title="Save Profile" onPress={handleSave} loading={loading} className="shadow-lg shadow-primary/30" />
                     </View>
                 </View>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={pickerVisible} animationType="slide" transparent>
+       {/* Parent Picker Modal */}
+       <Modal visible={pickerVisible} animationType="slide" transparent>
           <View className="flex-1 bg-black/50 justify-end">
               <View className="bg-white rounded-t-[35px] h-3/4 overflow-hidden">
-                  <View className="p-6 border-b border-gray-100 items-center bg-gray-50">
+                   <View className="p-6 border-b border-gray-100 items-center bg-gray-50">
                       <View className="w-12 h-1.5 bg-gray-300 rounded-full mb-4" />
                       <Text className="text-xl font-bold text-secondary">Select {pickerType === 'mother' ? 'Mother' : 'Father'}</Text>
                   </View>
                   <ScrollView contentContainerStyle={{ padding: 20 }}>
-                      <TouchableOpacity onPress={() => selectParent('')} className="bg-white p-4 rounded-2xl mb-3 flex-row justify-center border-2 border-dashed border-gray-300">
-                          <Text className="text-gray-500 font-bold">No Parent / Unknown</Text>
+                      <TouchableOpacity onPress={() => selectParent('')} className="bg-white p-4 rounded-2xl mb-3 border-2 border-dashed border-gray-300 items-center">
+                          <Text className="text-gray-500 font-bold">Unknown / None</Text>
                       </TouchableOpacity>
                       {potentialParents.map(c => (
                            <TouchableOpacity key={c.id} onPress={() => selectParent(c.id)} className="bg-white p-3 rounded-2xl mb-3 flex-row items-center border border-gray-100 shadow-sm">
-                               <Image source={{ uri: c.photoUrl || 'https://placekitten.com/50/50' }} className="w-12 h-12 rounded-full mr-4 bg-gray-100" />
-                               <View>
-                                   <Text className="text-base font-bold text-secondary">{c.name}</Text>
-                                   <Text className="text-gray-400 text-xs">{c.breed}</Text>
+                                <Image source={{ uri: c.photoUrl || 'https://placekitten.com/50/50' }} className="w-12 h-12 rounded-full mr-4 bg-gray-100" />
+                                <View>
+                                    <Text className="text-base font-bold text-secondary">{c.name}</Text>
+                                    <Text className="text-gray-400 text-xs">{c.breed}</Text>
                                 </View>
                            </TouchableOpacity>
                       ))}
@@ -325,6 +330,7 @@ export const AddCatScreen = () => {
   );
 };
 
+// Reusable Components
 const SectionTitle = ({ title }: { title: string }) => (
     <Text className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-1 ml-1">{title}</Text>
 );
@@ -352,10 +358,7 @@ const InputGroup = ({ label, value, onChangeText, placeholder, keyboardType, mul
 const ParentSelector = ({ label, value, onPress }: any) => (
     <View className="w-full">
          <Label text={label} />
-         <TouchableOpacity 
-            onPress={onPress} 
-            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 justify-center px-4 active:bg-gray-100 w-full"
-         >
+         <TouchableOpacity onPress={onPress} className="bg-gray-50 border border-gray-100 rounded-2xl h-14 justify-center px-4 active:bg-gray-100 w-full">
             <Text className={`text-base font-semibold ${value ? 'text-primary' : 'text-gray-300'}`} numberOfLines={1}>
                  {value || 'Select'}
             </Text>

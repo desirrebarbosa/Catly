@@ -62,7 +62,7 @@ export const updateSchedule = async (req: any, res: any) => {
           time,
           recurrence,
           cats: catIds ? {
-              set: catIds.map((cid: string) => ({ id: cid }))
+              set: catIds.map((cid: string) => ({ id: cid })) // Replaces existing relationships
           } : undefined
         },
         include: {
@@ -72,6 +72,7 @@ export const updateSchedule = async (req: any, res: any) => {
   
       res.json({ success: true, data: { schedule: updatedSchedule } });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ success: false, error: 'Update failed' });
     }
 };

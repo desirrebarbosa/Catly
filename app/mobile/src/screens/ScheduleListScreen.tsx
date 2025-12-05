@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Image as RNImage } from 'react-native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Image as RNImage, RefreshControl } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlusIcon, TrashIcon, ClockIcon } from 'react-native-heroicons/outline';
@@ -18,6 +18,7 @@ export const ScheduleListScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [schedules, setSchedules] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchSchedules = async () => {
     const res = await api.get('/schedules');
@@ -25,6 +26,12 @@ export const ScheduleListScreen = () => {
   };
 
   useFocusEffect(useCallback(() => { fetchSchedules(); }, []));
+
+  const onRefresh = async () => {
+      setIsRefreshing(true);
+      await fetchSchedules();
+      setIsRefreshing(false);
+  };
 
   const handleDelete = (id: string) => {
     Alert.alert('Delete Schedule', 'Are you sure?', [
@@ -65,7 +72,7 @@ export const ScheduleListScreen = () => {
                 <Image 
                     key={cat.id}
                     source={{ uri: cat.photoUrl || 'https://placekitten.com/100/100' }} 
-                    className="w-8 h-8 rounded-xl mr-2 bg-gray-100 border border-gray-100" 
+                    className="w-8 h-8 rounded-full mr-2 bg-gray-100 border border-gray-100" 
                 />
             ))}
             {item.cats && item.cats.length === 0 && (
@@ -96,6 +103,9 @@ export const ScheduleListScreen = () => {
             keyExtractor={(item: any) => item.id} 
             renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+                <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#F5A9C8" />
+            }
             ListEmptyComponent={
                 <View className="items-center mt-20 opacity-50">
                     <ClockIcon size={50} color="#D1D5DB" />

@@ -5,9 +5,13 @@ import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
-import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { CameraIcon, PlusIcon } from 'react-native-heroicons/solid';
+import { ChevronLeftIcon as ChevronLeftIconOutline } from 'react-native-heroicons/outline';
+import { CameraIcon as CameraIconSolid, PlusIcon as PlusIconSolid } from 'react-native-heroicons/solid';
 import * as ImagePicker from 'expo-image-picker';
+
+const ChevronLeftIcon = ChevronLeftIconOutline as any;
+const CameraIcon = CameraIconSolid as any;
+const PlusIcon = PlusIconSolid as any;
 
 const View = RNView as any;
 const Text = RNText as any;

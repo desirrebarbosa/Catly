@@ -3,9 +3,12 @@ import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, Image as RNImage, TouchableOpacity as RNTouchableOpacity, ActivityIndicator, TextInput as RNTextInput, RefreshControl } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MagnifyingGlassIcon, PlusIcon } from 'react-native-heroicons/outline';
+import { MagnifyingGlassIcon as MagnifyingGlassIconOutline, PlusIcon as PlusIconOutline } from 'react-native-heroicons/outline';
 import { useAuth } from '../context/AuthContext';
 import { useCats } from '../context/CatContext';
+
+const MagnifyingGlassIcon = MagnifyingGlassIconOutline as any;
+const PlusIcon = PlusIconOutline as any;
 
 const View = RNView as any;
 const Text = RNText as any;
@@ -64,10 +67,10 @@ export const CatListScreen = () => {
       onPress={() => navigation.navigate('CatDetails', { catId: item.id })}
       style={{ elevation: 2 }}
     >
-      <View className="w-20 h-20 rounded-[20px] border-2 border-primary/20 p-0.5 bg-gray-50">
+      <View className="w-20 h-20 rounded-full border-2 border-primary/20 p-0.5 bg-gray-50">
           <Image 
             source={{ uri: item.photoUrl || 'https://placekitten.com/200/200' }} 
-            className="w-full h-full rounded-[16px]" 
+            className="w-full h-full rounded-full" 
             resizeMode="cover"
           />
       </View>

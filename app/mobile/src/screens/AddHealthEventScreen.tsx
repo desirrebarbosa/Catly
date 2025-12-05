@@ -3,11 +3,15 @@ import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, CalendarDaysIcon, CameraIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon as ChevronLeftIconOutline, CalendarDaysIcon as CalendarDaysIconOutline, CameraIcon as CameraIconOutline } from 'react-native-heroicons/outline';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
+
+const ChevronLeftIcon = ChevronLeftIconOutline as any;
+const CalendarDaysIcon = CalendarDaysIconOutline as any;
+const CameraIcon = CameraIconOutline as any;
 
 // Cast components
 const View = RNView as any;

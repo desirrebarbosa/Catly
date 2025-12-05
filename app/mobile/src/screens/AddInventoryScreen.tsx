@@ -20,6 +20,7 @@ const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
 
 const CATEGORIES = ['Food', 'Medication', 'Toy', 'Litter', 'Grooming', 'Other'];
+const UNITS = ['kg', 'g', 'lbs', 'oz', 'pcs', 'cans', 'pouch', 'tube', 'ml', 'mg', 'tablet'];
 
 export const AddInventoryScreen = () => {
   const navigation = useNavigation();
@@ -31,10 +32,11 @@ export const AddInventoryScreen = () => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Food');
   const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState('');
+  const [unit, setUnit] = useState('pcs');
   const [threshold, setThreshold] = useState('');
   const [selectedCatIds, setSelectedCatIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [smartMsg, setSmartMsg] = useState('');
 
   useEffect(() => { 
       fetchCats(); 
@@ -42,11 +44,20 @@ export const AddInventoryScreen = () => {
           setName(item.name);
           setCategory(item.category);
           setQuantity(String(item.quantity));
-          setUnit(item.unit);
+          setUnit(item.unit || 'pcs');
           setThreshold(item.threshold ? String(item.threshold) : '');
           if(item.cats) setSelectedCatIds(item.cats.map((c: any) => c.id));
       }
   }, []);
+
+  // Effect to handle unit disabling
+  useEffect(() => {
+      if (category === 'Toy' || category === 'Other') {
+          setUnit('N/A');
+      } else if (unit === 'N/A') {
+          setUnit('pcs'); // Reset to default if switching back from Toy
+      }
+  }, [category]);
 
   const toggleCat = (id: string) => {
       if (selectedCatIds.includes(id)) {
@@ -66,7 +77,7 @@ export const AddInventoryScreen = () => {
 
   const calculateSmartThreshold = () => {
       if (category !== 'Food' || selectedCatIds.length === 0) {
-          Alert.alert("Smart Calc", "Select 'Food' and at least one cat to calculate.");
+          setSmartMsg("Select 'Food' & cats to calc.");
           return;
       }
 
@@ -83,8 +94,8 @@ export const AddInventoryScreen = () => {
           }
       });
 
-      if (unknownWeights > 0 && totalWeight === 0) {
-          Alert.alert("Data Missing", "Please add weights to your cat profiles first.");
+      if (totalWeight === 0) {
+          setSmartMsg("No weight data available.");
           return;
       }
 
@@ -93,7 +104,7 @@ export const AddInventoryScreen = () => {
       
       setThreshold(weeklyBuffer.toFixed(1));
       setUnit('kg');
-      Alert.alert("Calculated", `Based on ${totalWeight.toFixed(1)}kg total cat weight, a safe buffer is ~${weeklyBuffer.toFixed(1)}kg (1 week supply).`);
+      setSmartMsg(`Recommended: ${weeklyBuffer.toFixed(1)}kg (7-day supply for ${totalWeight}kg mass)`);
   };
 
   const handleSave = async () => {
@@ -172,10 +183,25 @@ export const AddInventoryScreen = () => {
                     </View>
                     <View className="flex-1">
                         <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Unit</Text>
-                        <TextInput 
-                            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary"
-                            value={unit} onChangeText={setUnit} placeholder="kg, pcs..." 
-                        />
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="h-14">
+                            <View className="flex-row items-center gap-2">
+                                {unit === 'N/A' ? (
+                                    <View className="bg-gray-100 px-4 py-2 rounded-xl border border-gray-200">
+                                        <Text className="text-gray-400 font-bold">N/A</Text>
+                                    </View>
+                                ) : (
+                                    UNITS.map(u => (
+                                        <TouchableOpacity
+                                            key={u}
+                                            onPress={() => setUnit(u)}
+                                            className={`px-3 py-2 rounded-xl border ${unit === u ? 'bg-secondary border-secondary' : 'bg-white border-gray-200'}`}
+                                        >
+                                            <Text className={`font-bold ${unit === u ? 'text-white' : 'text-gray-500'}`}>{u}</Text>
+                                        </TouchableOpacity>
+                                    ))
+                                )}
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
 
@@ -228,6 +254,7 @@ export const AddInventoryScreen = () => {
                         className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary"
                         value={threshold} onChangeText={setThreshold} keyboardType="numeric" placeholder="Alert when below..." 
                     />
+                    {smartMsg ? <Text className="text-primary text-xs mt-1 ml-1">{smartMsg}</Text> : null}
                 </View>
 
                 <Button title="Save Item" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />

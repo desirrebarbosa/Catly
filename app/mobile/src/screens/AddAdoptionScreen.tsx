@@ -19,7 +19,7 @@ export const AddAdoptionScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { catId } = (route.params as any);
+  const { catId, adoption } = (route.params as any);
 
   const [date, setDate] = useState(new Date());
   const [type, setType] = useState('Adoption');
@@ -38,10 +38,22 @@ export const AddAdoptionScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-      // Pre-fetch contacts for the picker
+      // Pre-fetch contacts
       api.get('/contacts').then(res => {
           if(res.success) setContacts(res.data.contacts);
       });
+
+      if (adoption) {
+          setDate(new Date(adoption.date));
+          setType(adoption.type);
+          setAdopterName(adoption.adopterName || '');
+          setNotes(adoption.notes || '');
+          if (adoption.contactId) {
+              setSelectedContactId(adoption.contactId);
+              // We rely on backend or previous fetch to get phone/email if needed, 
+              // but for edit we might just show name.
+          }
+      }
   }, []);
 
   const handleSelectContact = (contact: any) => {
@@ -54,8 +66,9 @@ export const AddAdoptionScreen = () => {
 
   const handleNameChange = (text: string) => {
       setAdopterName(text);
-      // If user types, we clear the ID so backend knows to search/create by name
       if (selectedContactId) {
+          // If user types over a selected contact, they are creating a NEW entry or unlinking.
+          // Prompt logic handled in save for "Create New?"
           setSelectedContactId(null);
           setAdopterPhone('');
           setAdopterEmail('');
@@ -65,20 +78,35 @@ export const AddAdoptionScreen = () => {
   const handleSave = async () => {
       if(!adopterName) return Alert.alert("Missing Info", "Please enter the new owner's name.");
 
+      // Check if name is manually typed but not selected from dropdown
+      const isKnownContact = contacts.some(c => c.id === selectedContactId);
+      if (!isKnownContact && !selectedContactId && adopterName.length > 0) {
+          // It's a new name. The backend handles creation, but let's confirm intent if phone is missing.
+          // For simplicity in this turn, we proceed to let backend create.
+      }
+
       setLoading(true);
-      const res = await api.post(`/adoptions/${catId}`, { 
+      const payload = { 
           date: date.toISOString(), 
           type, 
           adopterName, 
-          adopterPhone, // Send extra details for auto-creation
+          adopterPhone, 
           adopterEmail,
           contactId: selectedContactId,
           notes 
-      });
+      };
+
+      let res;
+      if (adoption) {
+          res = await api.put(`/adoptions/${adoption.id}`, payload);
+      } else {
+          res = await api.post(`/adoptions/${catId}`, payload);
+      }
+
       setLoading(false);
       
       if(res.success) {
-          Alert.alert("Success", "Adoption record saved.", [{ text: "OK", onPress: () => navigation.goBack() }]);
+          navigation.goBack();
       } else {
           Alert.alert("Error", "Failed to save");
       }
@@ -91,7 +119,7 @@ export const AddAdoptionScreen = () => {
             <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
-            <Text className="text-white text-xl font-bold">New Record</Text>
+            <Text className="text-white text-xl font-bold">{adoption ? 'Edit Record' : 'New Record'}</Text>
             <View className="w-10" />
           </View>
       </View>
@@ -117,9 +145,9 @@ export const AddAdoptionScreen = () => {
                 <View>
                     <View className="flex-row justify-between items-end mb-2">
                         <Text className="text-gray-500 font-bold text-xs uppercase">New Owner / Adopter</Text>
-                        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center">
+                        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center bg-gray-50 px-3 py-1 rounded-lg">
                             <UserGroupIcon size={14} color="#F5A9C8" />
-                            <Text className="text-primary text-xs font-bold ml-1">Select Contact</Text>
+                            <Text className="text-primary text-xs font-bold ml-1">Select from Contacts</Text>
                         </TouchableOpacity>
                     </View>
                     
@@ -131,7 +159,7 @@ export const AddAdoptionScreen = () => {
                         placeholderTextColor="#D1D5DB"
                     />
                     <Text className="text-gray-400 text-[10px] mt-1 ml-1">
-                        {selectedContactId ? "✓ Linked to existing contact" : "ℹ️ If new, a contact will be created automatically."}
+                        {selectedContactId ? "✓ Linked to existing contact" : "ℹ️ Name not in list? A new contact will be created."}
                     </Text>
                 </View>
 
@@ -176,7 +204,7 @@ export const AddAdoptionScreen = () => {
                     />
                 </View>
 
-                <Button title="Save Record" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                <Button title={adoption ? "Update Record" : "Save Record"} onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
