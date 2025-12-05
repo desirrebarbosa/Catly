@@ -108,9 +108,14 @@ export const AddLitterScreen = () => {
                                     value={date} 
                                     mode="date" 
                                     display="spinner"
-                                    onChange={(e, d) => { setShowPicker(false); if(d) setDate(d); }} 
+                                    onChange={(e, d) => { if(d) setDate(d); }} 
                                   />
-                                  <Button title="Done" onPress={() => setShowPicker(false)} className="mt-2" />
+                                  <TouchableOpacity 
+                                      onPress={() => setShowPicker(false)}
+                                      className="bg-primary py-3 rounded-2xl items-center mt-2"
+                                  >
+                                      <Text className="text-white font-bold text-sm">Done</Text>
+                                  </TouchableOpacity>
                               </View>
                           </View>
                       </Modal>

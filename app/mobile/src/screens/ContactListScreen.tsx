@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Linking, TextInput as RNTextInput } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlusIcon, PhoneIcon, TrashIcon, UserGroupIcon, HomeIcon, MagnifyingGlassIcon, PencilIcon } from 'react-native-heroicons/outline';
+import { PlusIcon, PhoneIcon, TrashIcon, UserGroupIcon, HomeIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
 
 const View = RNView as any;
@@ -48,7 +48,11 @@ export const ContactListScreen = () => {
         : '';
 
     return (
-        <View className="bg-white p-5 rounded-[24px] mb-3 border border-gray-100 shadow-sm">
+        <TouchableOpacity 
+            onLongPress={() => navigation.navigate('AddContact', { contact: item })}
+            activeOpacity={0.7}
+            className="bg-white p-5 rounded-[24px] mb-3 border border-gray-100 shadow-sm"
+        >
             <View className="flex-row items-center justify-between">
                 <View className="flex-1">
                     <Text className="text-secondary font-bold text-lg">{item.name}</Text>
@@ -56,9 +60,6 @@ export const ContactListScreen = () => {
                     <Text className="text-gray-400 text-sm">{item.phone || 'No phone'}</Text>
                 </View>
                 <View className="flex-row gap-2">
-                    <TouchableOpacity onPress={() => navigation.navigate('AddContact', { contact: item })} className="bg-blue-50 p-3 rounded-2xl">
-                        <PencilIcon size={20} color="#3B82F6" />
-                    </TouchableOpacity>
                     {item.phone && (
                         <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.phone}`)} className="bg-green-100 p-3 rounded-2xl">
                             <PhoneIcon size={20} color="#16A34A" />
@@ -79,7 +80,7 @@ export const ContactListScreen = () => {
                     </Text>
                 </View>
             )}
-        </View>
+        </TouchableOpacity>
     );
   };
 
@@ -107,6 +108,7 @@ export const ContactListScreen = () => {
                   onChangeText={setSearchQuery}
               />
           </View>
+          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press a card to edit</Text>
       </View>
 
       <View className="flex-1 bg-gray-50 pt-6 px-6">

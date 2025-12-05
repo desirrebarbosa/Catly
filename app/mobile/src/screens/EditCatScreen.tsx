@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -71,7 +72,9 @@ export const EditCatScreen = () => {
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+    if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+    }
     if (selectedDate) {
       setBirthDate(selectedDate);
     }
@@ -221,13 +224,25 @@ export const EditCatScreen = () => {
                                 </Text>
                             </TouchableOpacity>
                             {showDatePicker && (
-                                <DateTimePicker
-                                    value={birthDate}
-                                    mode="date"
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={onDateChange}
-                                    maximumDate={new Date()}
-                                />
+                                <Modal visible={showDatePicker} transparent animationType="fade">
+                                    <View className="flex-1 justify-center bg-black/50 px-6">
+                                        <View className="bg-white rounded-3xl p-4">
+                                            <DateTimePicker
+                                                value={birthDate}
+                                                mode="date"
+                                                display="spinner"
+                                                onChange={onDateChange}
+                                                maximumDate={new Date()}
+                                            />
+                                            <TouchableOpacity 
+                                                onPress={() => setShowDatePicker(false)}
+                                                className="bg-primary py-3 rounded-2xl items-center mt-2"
+                                            >
+                                                <Text className="text-white font-bold text-sm">Done</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </Modal>
                             )}
                         </View>
                         

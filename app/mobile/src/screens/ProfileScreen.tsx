@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { View as RNView, Text as RNText, TouchableOpacity as RNTouchableOpacity, ScrollView, Image as RNImage, Alert } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -54,7 +55,7 @@ export const ProfileScreen = () => {
             </View>
 
             {/* Info Cards */}
-            <View className="px-6 mt-6">
+            <View className="px-6 -mt-8">
                 <View className="bg-white p-6 rounded-[30px] shadow-lg shadow-black/5 border border-gray-100 mb-6">
                     <Text className="text-gray-400 text-xs font-extrabold uppercase mb-5 tracking-widest ml-1">Personal Details</Text>
                     

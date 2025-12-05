@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Image as RNImage, TextInput as RNTextInput, ScrollView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlusIcon, TrashIcon, CubeIcon, PencilIcon, ExclamationTriangleIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { PlusIcon, TrashIcon, CubeIcon, ExclamationTriangleIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
 
 const View = RNView as any;
@@ -51,7 +51,11 @@ export const InventoryListScreen = () => {
       const isLowStock = item.threshold && item.quantity <= item.threshold;
 
       return (
-        <View className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between">
+        <TouchableOpacity 
+            onLongPress={() => navigation.navigate('AddInventory', { item })}
+            activeOpacity={0.8}
+            className="bg-white p-4 rounded-[24px] mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between"
+        >
             <View className="flex-1">
                 <View className="flex-row items-center mb-1">
                     <Text className="text-secondary font-bold text-lg mr-2">{item.name}</Text>
@@ -86,14 +90,11 @@ export const InventoryListScreen = () => {
             </View>
             
             <View className="flex-col gap-2">
-                <TouchableOpacity onPress={() => navigation.navigate('AddInventory', { item })} className="p-3 bg-blue-50 rounded-2xl">
-                    <PencilIcon size={18} color="#3B82F6" />
-                </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-3 bg-red-50 rounded-2xl">
                     <TrashIcon size={18} color="#EF4444" />
                 </TouchableOpacity>
             </View>
-        </View>
+        </TouchableOpacity>
       );
   };
 
@@ -137,6 +138,7 @@ export const InventoryListScreen = () => {
                   )
               })}
           </ScrollView>
+          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press an item to edit</Text>
       </View>
       
       <View className="flex-1 bg-gray-50 pt-6 px-6">

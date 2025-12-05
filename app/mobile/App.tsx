@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,16 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CatProvider } from './src/context/CatContext';
 import { HomeIcon, CalendarDaysIcon, UserGroupIcon, UserCircleIcon, CubeIcon } from 'react-native-heroicons/solid';
 import { View as RNView } from 'react-native';
+import * as Notifications from 'expo-notifications';
+
+// Configure Notifications to show alert even when app is foregrounded
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const View = RNView as any;
 

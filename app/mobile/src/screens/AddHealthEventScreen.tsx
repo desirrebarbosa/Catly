@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, CalendarDaysIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, CalendarDaysIcon, CameraIcon } from 'react-native-heroicons/outline';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
 
@@ -13,6 +15,7 @@ const Text = RNText as any;
 const TextInput = RNTextInput as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const Image = RNImage as any;
 
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
@@ -40,6 +43,27 @@ export const AddHealthEventScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const base64Data = result.assets[0].base64;
+        const photoUri = `data:image/jpeg;base64,${base64Data}`;
+        setPhoto(photoUri);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -54,7 +78,8 @@ export const AddHealthEventScreen = () => {
         eventType,
         notes,
         diagnosis,
-        date: date.toISOString()
+        date: date.toISOString(),
+        attachmentUrl: photo
       });
       
       if(res.success) {
@@ -71,7 +96,9 @@ export const AddHealthEventScreen = () => {
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+    if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+    }
     if (selectedDate) setDate(selectedDate);
   };
 
@@ -136,13 +163,25 @@ export const AddHealthEventScreen = () => {
                     </Text>
                 </TouchableOpacity>
                 {showDatePicker && (
-                    <DateTimePicker
-                        value={date}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        onChange={onDateChange}
-                        maximumDate={new Date()}
-                    />
+                    <Modal visible={showDatePicker} transparent animationType="fade">
+                        <View className="flex-1 justify-center bg-black/50 px-6">
+                            <View className="bg-white rounded-3xl p-4">
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display="spinner"
+                                    onChange={onDateChange}
+                                    maximumDate={new Date()}
+                                />
+                                <TouchableOpacity 
+                                    onPress={() => setShowDatePicker(false)}
+                                    className="bg-primary py-3 rounded-2xl items-center mt-2"
+                                >
+                                    <Text className="text-white font-bold text-sm">Done</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
                 )}
 
                 {/* Title Input */}
@@ -164,6 +203,24 @@ export const AddHealthEventScreen = () => {
                     value={diagnosis}
                     onChangeText={setDiagnosis}
                 />
+
+                {/* Attachments */}
+                <InputLabel text="Attachment (X-Ray, Lab Result)" />
+                <TouchableOpacity onPress={pickImage} className="mb-5">
+                    {photo ? (
+                        <View className="h-40 w-full rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
+                            <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
+                            <View className="absolute bottom-2 right-2 bg-black/50 px-3 py-1 rounded-full">
+                                <Text className="text-white text-xs font-bold">Change</Text>
+                            </View>
+                        </View>
+                    ) : (
+                        <View className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl h-24 items-center justify-center flex-row">
+                            <CameraIcon size={24} color="#9CA3AF" />
+                            <Text className="text-gray-400 font-bold ml-2">Add Photo</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
 
                 {/* Notes Input */}
                 <InputLabel text="Notes / Symptoms" />

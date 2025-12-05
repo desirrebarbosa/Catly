@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView as RNScrollView, Image as RNImage, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, CheckCircleIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, SparklesIcon } from 'react-native-heroicons/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from 'react-native-heroicons/solid';
 import { useCats } from '../context/CatContext';
 import { Button } from '../components/ui/Button';
@@ -62,6 +62,38 @@ export const AddInventoryScreen = () => {
       } else {
           setSelectedCatIds(cats.map(c => c.id));
       }
+  };
+
+  const calculateSmartThreshold = () => {
+      if (category !== 'Food' || selectedCatIds.length === 0) {
+          Alert.alert("Smart Calc", "Select 'Food' and at least one cat to calculate.");
+          return;
+      }
+
+      // Logic: 3% of body weight per day * 7 days buffer
+      let totalWeight = 0;
+      let unknownWeights = 0;
+
+      selectedCatIds.forEach(id => {
+          const cat = cats.find(c => c.id === id);
+          if (cat && cat.weight) {
+              totalWeight += cat.weight;
+          } else {
+              unknownWeights++;
+          }
+      });
+
+      if (unknownWeights > 0 && totalWeight === 0) {
+          Alert.alert("Data Missing", "Please add weights to your cat profiles first.");
+          return;
+      }
+
+      const dailyIntakeKg = totalWeight * 0.03; // 3%
+      const weeklyBuffer = dailyIntakeKg * 7;
+      
+      setThreshold(weeklyBuffer.toFixed(1));
+      setUnit('kg');
+      Alert.alert("Calculated", `Based on ${totalWeight.toFixed(1)}kg total cat weight, a safe buffer is ~${weeklyBuffer.toFixed(1)}kg (1 week supply).`);
   };
 
   const handleSave = async () => {
@@ -147,18 +179,10 @@ export const AddInventoryScreen = () => {
                     </View>
                 </View>
 
-                <View>
-                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Low Stock Alert Level</Text>
-                    <TextInput 
-                        className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary"
-                        value={threshold} onChangeText={setThreshold} keyboardType="numeric" placeholder="Alert when below..." 
-                    />
-                </View>
-
                 {/* Cat Selector */}
                 <View>
                     <View className="flex-row justify-between items-end mb-3 mt-2">
-                        <Text className="text-gray-500 font-bold text-xs uppercase ml-1">Associated Cats (Optional)</Text>
+                        <Text className="text-gray-500 font-bold text-xs uppercase ml-1">Associated Cats</Text>
                         <TouchableOpacity onPress={toggleSelectAll}>
                             <Text className="text-primary font-bold text-xs">
                                 {selectedCatIds.length === cats.length ? 'Deselect All' : 'Select All'}
@@ -188,6 +212,22 @@ export const AddInventoryScreen = () => {
                             );
                         })}
                     </ScrollView>
+                </View>
+
+                <View>
+                    <View className="flex-row justify-between items-center mb-2 ml-1">
+                        <Text className="text-gray-500 font-bold text-xs uppercase">Low Stock Alert Level</Text>
+                        {category === 'Food' && (
+                            <TouchableOpacity onPress={calculateSmartThreshold} className="flex-row items-center">
+                                <SparklesIcon size={14} color="#F5A9C8" />
+                                <Text className="text-primary text-[10px] font-bold ml-1">Auto-Calculate</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                    <TextInput 
+                        className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary"
+                        value={threshold} onChangeText={setThreshold} keyboardType="numeric" placeholder="Alert when below..." 
+                    />
                 </View>
 
                 <Button title="Save Item" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />

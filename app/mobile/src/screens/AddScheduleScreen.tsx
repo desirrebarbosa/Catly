@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView as RNScrollView, Platform, Image as RNImage, Modal, KeyboardAvoidingView as RNKeyboardAvoidingView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, ClockIcon, CheckCircleIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, ClockIcon } from 'react-native-heroicons/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from 'react-native-heroicons/solid';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCats } from '../context/CatContext';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
+import { scheduleLocalNotification } from '../services/notifications';
 
 const View = RNView as any;
 const Text = RNText as any;
@@ -47,8 +48,14 @@ export const AddScheduleScreen = () => {
           if(!TASK_TYPES.includes(schedule.taskName)) setCustomTask(schedule.taskName);
           
           setRecurrence(schedule.recurrence);
-          // Parse time string e.g "08:30 AM" roughly for display (simplified)
-          // In real app, store full ISO or handle parsing robustly.
+          // Simple time parse attempt
+          const [timePart, modifier] = schedule.time.split(' ');
+          let [hours, minutes] = timePart.split(':');
+          if (hours === '12') hours = '00';
+          if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+          const d = new Date();
+          d.setHours(parseInt(hours), parseInt(minutes));
+          setTime(d);
           
           if(schedule.cats) {
               setSelectedCatIds(schedule.cats.map((c: any) => c.id));
@@ -96,8 +103,28 @@ export const AddScheduleScreen = () => {
       }
 
       setLoading(false);
-      if(res.success) navigation.goBack();
-      else Alert.alert("Error", "Failed to save");
+      if(res.success) {
+          // Schedule Alarm
+          try {
+              const hour = time.getHours();
+              const minute = time.getMinutes();
+              const catNames = cats.filter((c: any) => selectedCatIds.includes(c.id)).map((c: any) => c.name).join(', ');
+              
+              await scheduleLocalNotification(
+                  finalTaskName,
+                  `Time for ${catNames}!`,
+                  hour,
+                  minute,
+                  recurrence
+              );
+              Alert.alert("Success", "Schedule saved and alarm set!");
+          } catch (e) {
+              console.log("Notification error", e);
+          }
+          navigation.goBack();
+      } else {
+          Alert.alert("Error", res.error || "Failed to save");
+      }
   };
 
   return (
@@ -183,19 +210,23 @@ export const AddScheduleScreen = () => {
                 </Text>
             </TouchableOpacity>
 
-            <Modal visible={showTimePicker} transparent animationType="slide">
-                <View className="flex-1 justify-end bg-black/50">
-                    <View className="bg-white rounded-t-3xl pb-10">
-                        <View className="flex-row justify-between items-center p-4 border-b border-gray-100 bg-gray-50 rounded-t-3xl">
-                            <Text className="text-gray-500 font-bold ml-2">Pick Time</Text>
-                            <Button title="Confirm" onPress={() => setShowTimePicker(false)} className="h-10 w-24 rounded-xl" />
-                        </View>
+            <Modal visible={showTimePicker} transparent animationType="fade">
+                <View className="flex-1 justify-center items-center bg-black/50 px-6">
+                    <View className="bg-white rounded-3xl w-full p-4 items-center shadow-2xl">
+                        <Text className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-4">Select Time</Text>
                         <DateTimePicker 
                             value={time} 
                             mode="time" 
                             display="spinner"
                             onChange={(e, d) => d && setTime(d)} 
+                            style={{ height: 150, width: '100%' }}
                         />
+                        <TouchableOpacity 
+                            onPress={() => setShowTimePicker(false)}
+                            className="bg-primary px-8 py-3 rounded-2xl mt-4 w-full items-center"
+                        >
+                            <Text className="text-white font-bold text-sm">Confirm Time</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
@@ -209,7 +240,7 @@ export const AddScheduleScreen = () => {
                             onPress={() => setRecurrence(opt)}
                             className={`flex-1 py-3 items-center rounded-xl border ${recurrence === opt ? 'bg-secondary border-secondary' : 'bg-white border-gray-200'}`}
                         >
-                            <Text className={`font-bold ${recurrence === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
+                            <Text className={`font-bold text-xs ${recurrence === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>

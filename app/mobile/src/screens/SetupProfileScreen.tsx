@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, TouchableOpacity as RNTouchableOpacity, Image as RNImage, Alert } from 'react-native';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, TouchableOpacity as RNTouchableOpacity, Image as RNImage, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,7 @@ const Text = RNText as any;
 const TextInput = RNTextInput as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const Image = RNImage as any;
+const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
 
@@ -59,7 +60,6 @@ export const SetupProfileScreen = () => {
     if (isEditing) {
         navigation.goBack();
     } else {
-        // Mark setup as complete in context to allow navigation to MainTabs
         completeSetup();
     }
   };
@@ -78,61 +78,63 @@ export const SetupProfileScreen = () => {
           <View className="w-10" />
        </View>
 
-       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24 }}>
-          {/* Avatar Picker */}
-          <View className="items-center mb-8">
-             <TouchableOpacity onPress={pickImage} className="relative active:opacity-90">
-                 <View className="w-32 h-32 rounded-full bg-gray-50 border-4 border-primary/20 justify-center items-center overflow-hidden">
-                    {photo ? (
-                        <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
-                    ) : (
-                        <CameraIcon size={40} color="#D1D5DB" />
-                    )}
-                 </View>
-                 <View className="absolute bottom-0 right-0 bg-primary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
-                     <PlusIcon size={16} color="white" />
-                 </View>
-             </TouchableOpacity>
-             <Text className="text-gray-400 font-bold text-xs mt-3 uppercase tracking-wider">Change Photo</Text>
-          </View>
+       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24 }}>
+            {/* Avatar Picker */}
+            <View className="items-center mb-8">
+                <TouchableOpacity onPress={pickImage} className="relative active:opacity-90">
+                    <View className="w-32 h-32 rounded-full bg-gray-50 border-4 border-primary/20 justify-center items-center overflow-hidden">
+                        {photo ? (
+                            <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
+                        ) : (
+                            <CameraIcon size={40} color="#D1D5DB" />
+                        )}
+                    </View>
+                    <View className="absolute bottom-0 right-0 bg-primary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                        <PlusIcon size={16} color="white" />
+                    </View>
+                </TouchableOpacity>
+                <Text className="text-gray-400 font-bold text-xs mt-3 uppercase tracking-wider">Change Photo</Text>
+            </View>
 
-          <View className="w-full gap-5">
-            <View>
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Full Name</Text>
-                <TextInput
-                className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary"
-                placeholder="Your Name"
-                placeholderTextColor="#9FA5C0"
-                value={name}
-                onChangeText={setName}
-                />
+            <View className="w-full gap-5">
+                <View>
+                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Full Name</Text>
+                    <TextInput
+                    className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary"
+                    placeholder="Your Name"
+                    placeholderTextColor="#9FA5C0"
+                    value={name}
+                    onChangeText={setName}
+                    />
+                </View>
+                <View>
+                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Phone Number</Text>
+                    <TextInput
+                    className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary"
+                    placeholder="(555) 123-4567"
+                    placeholderTextColor="#9FA5C0"
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                    />
+                </View>
+                <View>
+                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">About Me</Text>
+                    <TextInput
+                    className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary h-32 leading-5"
+                    placeholder="Tell us about yourself..."
+                    placeholderTextColor="#9FA5C0"
+                    value={about}
+                    onChangeText={setAbout}
+                    multiline
+                    textAlignVertical="top"
+                    />
+                </View>
+                <Button title="Save Details" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
             </View>
-            <View>
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Phone Number</Text>
-                <TextInput
-                className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary"
-                placeholder="(555) 123-4567"
-                placeholderTextColor="#9FA5C0"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                />
-            </View>
-            <View>
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">About Me</Text>
-                <TextInput
-                className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary h-32 leading-5"
-                placeholder="Tell us about yourself..."
-                placeholderTextColor="#9FA5C0"
-                value={about}
-                onChangeText={setAbout}
-                multiline
-                textAlignVertical="top"
-                />
-            </View>
-            <Button title="Save Details" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
-          </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

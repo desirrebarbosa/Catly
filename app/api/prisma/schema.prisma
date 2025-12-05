@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   about     String?
   photoUrl  String?
   
-  // 2-Step Verification & Security
+  // 2-Step Verification
   isVerified         Boolean   @default(false)
   verificationCode   String?
   verificationExpiry DateTime?
@@ -51,6 +51,7 @@ model Cat {
   isArchived  Boolean  @default(false)
   photoUrl    String?
 
+  // Lineage (Self-relations for Parents)
   motherId    String?
   mother      Cat?     @relation("MotherChildren", fields: [motherId], references: [id])
   childrenMother Cat[] @relation("MotherChildren")
@@ -59,13 +60,20 @@ model Cat {
   father      Cat?     @relation("FatherChildren", fields: [fatherId], references: [id])
   childrenFather Cat[] @relation("FatherChildren")
 
+  // Lineage (Relation to Litter as a Child)
+  litterId    String?
+  litter      Litter?  @relation("LitterKittens", fields: [litterId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   healthEvents   HealthEvent[]
   adoptions      AdoptionRecord[]
+  
+  // Lineage (Relation to Litters as a Parent)
   litters        Litter[]      @relation("MotherLitters")
   littersSired   Litter[]      @relation("FatherLitters")
+  
   schedules      Schedule[]
   inventoryItems InventoryItem[]
   weightLogs     WeightLog[]
@@ -100,7 +108,7 @@ model Schedule {
   taskName      String
   time          String
   recurrence    String
-  lastCompleted DateTime? // Tracks when it was last checked off
+  lastCompleted DateTime?
   createdAt     DateTime @default(now())
 }
 
@@ -132,14 +140,20 @@ model AdoptionRecord {
 
 model Litter {
   id          String   @id @default(uuid())
+  
+  // Parents
   motherId    String
   mother      Cat      @relation("MotherLitters", fields: [motherId], references: [id])
   fatherId    String?
   father      Cat?     @relation("FatherLitters", fields: [fatherId], references: [id])
+  
   dateOfBirth DateTime
   kittenCount Int
   notes       String?
-  kittens     Cat[]    
+  
+  // Children (The fix: Named relation to match Cat.litter)
+  kittens     Cat[]    @relation("LitterKittens")
+  
   createdAt   DateTime @default(now())
 }
 

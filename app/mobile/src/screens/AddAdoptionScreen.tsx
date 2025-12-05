@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView, Modal, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, UserGroupIcon, UserIcon } from 'react-native-heroicons/outline';
@@ -11,6 +11,7 @@ const View = RNView as any;
 const Text = RNText as any;
 const TextInput = RNTextInput as any;
 const TouchableOpacity = RNTouchableOpacity as any;
+const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
 
@@ -95,88 +96,90 @@ export const AddAdoptionScreen = () => {
           </View>
       </View>
       
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 50 }}>
-          <View className="gap-6">
-            <View>
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Event Type</Text>
-                <View className="flex-row gap-2">
-                    {['Adoption', 'Transfer', 'Foster'].map(opt => (
-                        <TouchableOpacity 
-                            key={opt}
-                            onPress={() => setType(opt)}
-                            className={`px-4 py-2 rounded-xl border ${type === opt ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
-                        >
-                            <Text className={`font-bold ${type === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-            
-            <View>
-                <View className="flex-row justify-between items-end mb-2">
-                    <Text className="text-gray-500 font-bold text-xs uppercase">New Owner / Adopter</Text>
-                    <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center">
-                        <UserGroupIcon size={14} color="#F5A9C8" />
-                        <Text className="text-primary text-xs font-bold ml-1">Select Contact</Text>
-                    </TouchableOpacity>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 50 }}>
+            <View className="gap-6">
+                <View>
+                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Event Type</Text>
+                    <View className="flex-row gap-2">
+                        {['Adoption', 'Transfer', 'Foster'].map(opt => (
+                            <TouchableOpacity 
+                                key={opt}
+                                onPress={() => setType(opt)}
+                                className={`px-4 py-2 rounded-xl border ${type === opt ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
+                            >
+                                <Text className={`font-bold ${type === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
                 
-                <TextInput 
-                    className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" 
-                    value={adopterName} 
-                    onChangeText={handleNameChange} 
-                    placeholder="e.g. John Doe" 
-                    placeholderTextColor="#D1D5DB"
-                />
-                <Text className="text-gray-400 text-[10px] mt-1 ml-1">
-                    {selectedContactId ? "✓ Linked to existing contact" : "ℹ️ If new, a contact will be created automatically."}
-                </Text>
-            </View>
-
-            {/* Extra fields only show if creating new or viewing loaded details */}
-            <View className="flex-row gap-4">
-                <View className="flex-1">
-                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Phone (Optional)</Text>
+                <View>
+                    <View className="flex-row justify-between items-end mb-2">
+                        <Text className="text-gray-500 font-bold text-xs uppercase">New Owner / Adopter</Text>
+                        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center">
+                            <UserGroupIcon size={14} color="#F5A9C8" />
+                            <Text className="text-primary text-xs font-bold ml-1">Select Contact</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
                     <TextInput 
                         className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" 
-                        value={adopterPhone} 
-                        onChangeText={setAdopterPhone} 
-                        placeholder="555-0123" 
-                        keyboardType="phone-pad"
-                        editable={!selectedContactId} // Disable if linked
-                        style={{ opacity: selectedContactId ? 0.6 : 1 }}
+                        value={adopterName} 
+                        onChangeText={handleNameChange} 
+                        placeholder="e.g. John Doe" 
+                        placeholderTextColor="#D1D5DB"
                     />
+                    <Text className="text-gray-400 text-[10px] mt-1 ml-1">
+                        {selectedContactId ? "✓ Linked to existing contact" : "ℹ️ If new, a contact will be created automatically."}
+                    </Text>
                 </View>
-                <View className="flex-1">
-                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Email (Optional)</Text>
+
+                {/* Extra fields only show if creating new or viewing loaded details */}
+                <View className="flex-row gap-4">
+                    <View className="flex-1">
+                        <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Phone (Optional)</Text>
+                        <TextInput 
+                            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" 
+                            value={adopterPhone} 
+                            onChangeText={setAdopterPhone} 
+                            placeholder="555-0123" 
+                            keyboardType="phone-pad"
+                            editable={!selectedContactId} // Disable if linked
+                            style={{ opacity: selectedContactId ? 0.6 : 1 }}
+                        />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Email (Optional)</Text>
+                        <TextInput 
+                            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" 
+                            value={adopterEmail} 
+                            onChangeText={setAdopterEmail} 
+                            placeholder="@email.com" 
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            editable={!selectedContactId}
+                            style={{ opacity: selectedContactId ? 0.6 : 1 }}
+                        />
+                    </View>
+                </View>
+
+                <View>
+                    <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Notes</Text>
                     <TextInput 
-                        className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" 
-                        value={adopterEmail} 
-                        onChangeText={setAdopterEmail} 
-                        placeholder="@email.com" 
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        editable={!selectedContactId}
-                        style={{ opacity: selectedContactId ? 0.6 : 1 }}
+                        className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-base h-32 text-secondary" 
+                        value={notes} 
+                        onChangeText={setNotes} 
+                        multiline 
+                        placeholder="Contract details, rehoming fee, etc..." 
+                        textAlignVertical="top" 
                     />
                 </View>
-            </View>
 
-            <View>
-                <Text className="text-gray-500 font-bold text-xs uppercase mb-2">Notes</Text>
-                <TextInput 
-                    className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-base h-32 text-secondary" 
-                    value={notes} 
-                    onChangeText={setNotes} 
-                    multiline 
-                    placeholder="Contract details, rehoming fee, etc..." 
-                    textAlignVertical="top" 
-                />
+                <Button title="Save Record" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
             </View>
-
-            <Button title="Save Record" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
-          </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Contact Picker Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
