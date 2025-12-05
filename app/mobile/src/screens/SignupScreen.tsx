@@ -44,12 +44,10 @@ export const SignupScreen = () => {
     const result = await signup(email, password, username);
     setLoading(false);
     
-    if (result.success) {
-        // Navigate to Setup Profile immediately after successful signup
-        navigation.navigate('SetupProfile');
-    } else {
+    if (!result.success) {
         Alert.alert('Signup Failed', result.error);
     }
+    // Success handling is managed by AuthContext.isNewUser triggering App.tsx navigation
   };
 
   return (

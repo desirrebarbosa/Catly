@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert } from 'react-native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlusIcon, TrashIcon, ClockIcon } from 'react-native-heroicons/outline';
@@ -9,6 +10,7 @@ const View = RNView as any;
 const Text = RNText as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const FlatList = RNFlatList as any;
+const Image = RNImage as any;
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useFocusEffect = (ReactNavigation as any).useFocusEffect;
 
@@ -37,12 +39,25 @@ export const ScheduleListScreen = () => {
   const renderItem = ({ item }: { item: any }) => (
     <View className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between">
        <View className="flex-row items-center flex-1">
-          <View className="bg-orange-100 p-3 rounded-xl mr-4">
-              <ClockIcon size={24} color="#F97316" />
+          {/* Cat Avatar */}
+          <View className="mr-4 relative">
+              <Image 
+                source={{ uri: item.cat?.photoUrl || 'https://placekitten.com/100/100' }} 
+                className="w-12 h-12 rounded-full bg-gray-100" 
+              />
+              <View className="absolute -bottom-1 -right-1 bg-orange-100 p-1 rounded-full border border-white">
+                <ClockIcon size={12} color="#F97316" />
+              </View>
           </View>
+          
           <View>
               <Text className="text-secondary font-bold text-lg">{item.taskName}</Text>
-              <Text className="text-gray-400 text-sm font-medium">{item.time} • {item.recurrence}</Text>
+              <Text className="text-gray-400 text-sm font-medium mb-0.5">
+                {item.cat?.name || 'Unknown Cat'}
+              </Text>
+              <Text className="text-primary font-bold text-xs">
+                 {item.time} • {item.recurrence}
+              </Text>
           </View>
        </View>
        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 opacity-50">

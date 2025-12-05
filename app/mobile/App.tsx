@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CatProvider } from './src/context/CatContext';
-import { HomeIcon, CalendarDaysIcon, UserGroupIcon, UserIcon } from 'react-native-heroicons/solid';
+import { HomeIcon, CalendarDaysIcon, UserGroupIcon } from 'react-native-heroicons/solid';
+import { UserCircleIcon } from 'react-native-heroicons/solid'; // Changed import for Profile
 import { View as RNView } from 'react-native';
 
 const View = RNView as any;
@@ -96,7 +98,7 @@ const BottomTabs = () => {
         component={ProfileScreen} 
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color, size }: any) => <UserIcon color={color} size={size} />
+          tabBarIcon: ({ color, size }: any) => <UserCircleIcon color={color} size={size} />
         }}
       />
     </TabNavigator>
@@ -104,7 +106,7 @@ const BottomTabs = () => {
 };
 
 const AppNavigation = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isNewUser } = useAuth();
   
   if (isLoading) return null;
 
@@ -117,8 +119,11 @@ const AppNavigation = () => {
           <StackScreen name="Login" component={LoginScreen} />
           <StackScreen name="Signup" component={SignupScreen} />
           <StackScreen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <StackScreen name="SetupProfile" component={SetupProfileScreen} />
+          {/* SetupProfile is strictly for new users, managed by isNewUser state */}
         </>
+      ) : isNewUser ? (
+         // If user is logged in but flagged as new, force them to Setup Profile
+         <StackScreen name="SetupProfile" component={SetupProfileScreen} />
       ) : (
         <>
           {/* Main Tabs */}

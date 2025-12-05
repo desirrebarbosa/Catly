@@ -1,3 +1,5 @@
+// api/prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,14 +17,14 @@ model User {
   name      String
   phone     String?
   about     String?
-  photoUrl  String?  // Profile Picture
+  photoUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relationships
-  cats      Cat[]
-  schedules Schedule[]
-  contacts  Contact[]
+  cats           Cat[]
+  schedules      Schedule[]
+  contacts       Contact[]
+  inventoryItems InventoryItem[]
 }
 
 model Cat {
@@ -43,7 +45,6 @@ model Cat {
   isArchived  Boolean  @default(false)
   photoUrl    String?
 
-  // Lineage (Self-relations)
   motherId    String?
   mother      Cat?     @relation("MotherChildren", fields: [motherId], references: [id])
   childrenMother Cat[] @relation("MotherChildren")
@@ -55,39 +56,43 @@ model Cat {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Related Data
-  healthEvents HealthEvent[]
-  adoptions    AdoptionRecord[]
+  healthEvents   HealthEvent[]
+  adoptions      AdoptionRecord[]
   
-  // Litters where this cat is the mother
-  litters      Litter[]      @relation("MotherLitters")
-  // Litters where this cat is the father
-  littersSired Litter[]      @relation("FatherLitters")
+  // Litter Relations
+  litterId       String?
+  litter         Litter?       @relation(fields: [litterId], references: [id])
   
-  schedules    Schedule[]
+  litters        Litter[]      @relation("MotherLitters")
+  littersSired   Litter[]      @relation("FatherLitters")
+  
+  schedules      Schedule[]
+  inventoryItems InventoryItem[]
 }
 
 model HealthEvent {
-  id        String   @id @default(uuid())
-  catId     String
-  cat       Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
-  title     String
-  eventType String   // Vaccination, Surgery, etc.
-  notes     String?
-  diagnosis String?
-  date      DateTime
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  catId         String
+  cat           Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  title         String
+  eventType     String   // Vaccination, Surgery, etc.
+  notes         String?
+  diagnosis     String?
+  attachmentUrl String?  // X-Ray, Lab Result photo
+  date          DateTime
+  createdAt     DateTime @default(now())
 }
 
 model Schedule {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  catId      String
-  cat        Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  
+  cats       Cat[]    // Linked to multiple cats
+  
   taskName   String
   time       String
-  recurrence String   // Daily, Weekly, Monthly
+  recurrence String   // Once, Daily, Weekly, Monthly
   createdAt  DateTime @default(now())
 }
 
@@ -101,7 +106,7 @@ model Contact {
   email     String?
   createdAt DateTime @default(now())
   
-  adoptions AdoptionRecord[] // Back relation to see who adopted which cat
+  adoptions AdoptionRecord[] // Back relation
 }
 
 model AdoptionRecord {
@@ -110,14 +115,9 @@ model AdoptionRecord {
   cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
   date        DateTime
   type        String   // Adoption, Transfer, Rehoming
-  
-  // Snapshots for historical accuracy
-  adopterName String? 
-  
-  // Link to Contact module (Optional, but recommended)
+  adopterName String?
   contactId   String?
   contact     Contact? @relation(fields: [contactId], references: [id])
-  
   notes       String?
   createdAt   DateTime @default(now())
 }
@@ -131,5 +131,25 @@ model Litter {
   dateOfBirth DateTime
   kittenCount Int
   notes       String?
+  
+  kittens     Cat[]    // Relation to the actual kitten profiles
+  
   createdAt   DateTime @default(now())
+}
+
+model InventoryItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  category  String   // Food, Meds, Toy, etc.
+  quantity  Float
+  unit      String   // kg, pcs, cans
+  threshold Float?   // Low stock alert
+  
+  cats      Cat[]    // Linked to multiple cats
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

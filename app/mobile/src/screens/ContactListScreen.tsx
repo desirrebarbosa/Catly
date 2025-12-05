@@ -1,8 +1,9 @@
+
 import React, { useState, useCallback } from 'react';
 import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, Linking } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlusIcon, PhoneIcon, TrashIcon, UserGroupIcon } from 'react-native-heroicons/outline';
+import { PlusIcon, PhoneIcon, TrashIcon, UserGroupIcon, HomeIcon } from 'react-native-heroicons/outline';
 import api from '../services/api';
 
 const View = RNView as any;
@@ -34,23 +35,44 @@ export const ContactListScreen = () => {
     ]);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 shadow-sm flex-row items-center justify-between">
-       <View className="flex-1">
-          <Text className="text-secondary font-bold text-lg">{item.name}</Text>
-          <Text className="text-primary font-bold text-xs uppercase mb-1">{item.role}</Text>
-          <Text className="text-gray-400 text-sm">{item.phone}</Text>
-       </View>
-       <View className="flex-row gap-2">
-           <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.phone}`)} className="bg-green-100 p-2.5 rounded-full">
-               <PhoneIcon size={20} color="#16A34A" />
-           </TouchableOpacity>
-           <TouchableOpacity onPress={() => handleDelete(item.id)} className="bg-gray-100 p-2.5 rounded-full">
-               <TrashIcon size={20} color="#9CA3AF" />
-           </TouchableOpacity>
-       </View>
-    </View>
-  );
+  const renderItem = ({ item }: { item: any }) => {
+    // Extract unique cat names from adoptions array
+    const adoptedCats = item.adoptions 
+        ? item.adoptions.map((a: any) => a.cat.name).join(', ') 
+        : '';
+
+    return (
+        <View className="bg-white p-4 rounded-2xl mb-3 border border-gray-100 shadow-sm">
+            <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                    <Text className="text-secondary font-bold text-lg">{item.name}</Text>
+                    <Text className="text-primary font-bold text-xs uppercase mb-1">{item.role}</Text>
+                    <Text className="text-gray-400 text-sm">{item.phone || 'No phone'}</Text>
+                </View>
+                <View className="flex-row gap-2">
+                    {item.phone && (
+                        <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.phone}`)} className="bg-green-100 p-2.5 rounded-full">
+                            <PhoneIcon size={20} color="#16A34A" />
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={() => handleDelete(item.id)} className="bg-gray-100 p-2.5 rounded-full">
+                        <TrashIcon size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            {/* Adopted Cats Badge */}
+            {adoptedCats && (
+                <View className="mt-3 bg-orange-50 border border-orange-100 px-3 py-2 rounded-xl flex-row items-center self-start">
+                    <HomeIcon size={14} color="#F97316" />
+                    <Text className="text-orange-600 text-xs font-bold ml-2">
+                        Adopted: {adoptedCats}
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
+  };
 
   return (
     <View className="flex-1 bg-white">

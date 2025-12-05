@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, TouchableOpacity as RNTouchableOpacity, Image as RNImage, Alert } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -20,7 +21,7 @@ export const SetupProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, completeSetup } = useAuth();
   
   const isEditing = route.name === 'EditProfile';
 
@@ -58,7 +59,8 @@ export const SetupProfileScreen = () => {
     if (isEditing) {
         navigation.goBack();
     } else {
-        navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+        // Mark setup as complete in context to allow navigation to MainTabs
+        completeSetup();
     }
   };
 

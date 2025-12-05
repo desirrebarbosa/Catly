@@ -40,7 +40,7 @@ async function main() {
       }
     });
 
-    // 4. Create Parent Cats (Created before schedules so we can link them)
+    // 4. Create Parent Cats
     const luna = await prisma.cat.create({
       data: {
         ownerId: user.id,
@@ -79,20 +79,21 @@ async function main() {
 
     console.log(`🐱 Parents created: ${luna.name} & ${simba.name}`);
 
-    // 3. Create Schedules (Now linked to Luna)
+    // 3. Create Schedules (Now Many-to-Many)
     await prisma.schedule.create({
       data: {
         userId: user.id,
-        catId: luna.id,
+        cats: { connect: [{ id: luna.id }, { id: simba.id }] }, // Shared schedule
         taskName: 'Morning Feeding',
         time: '08:00 AM',
         recurrence: 'Daily'
       }
     });
+    
     await prisma.schedule.create({
       data: {
         userId: user.id,
-        catId: luna.id,
+        cats: { connect: [{ id: luna.id }] },
         taskName: 'Flea Prevention',
         time: '09:00 AM',
         recurrence: 'Monthly'
@@ -100,7 +101,33 @@ async function main() {
     });
     console.log('📅 Schedules created');
 
-    // 5. Adoption Record
+    // 5. Inventory Items
+    await prisma.inventoryItem.create({
+        data: {
+            userId: user.id,
+            name: 'Royal Canin Dry Food',
+            category: 'Food',
+            quantity: 5,
+            unit: 'kg',
+            threshold: 2,
+            cats: { connect: [{ id: luna.id }, { id: simba.id }] }
+        }
+    });
+    
+    await prisma.inventoryItem.create({
+        data: {
+            userId: user.id,
+            name: 'Worming Tablets',
+            category: 'Medication',
+            quantity: 1,
+            unit: 'box',
+            threshold: 1,
+            cats: { connect: [{ id: luna.id }] }
+        }
+    });
+    console.log('📦 Inventory created');
+
+    // 6. Adoption Record
     await prisma.adoptionRecord.create({
       data: {
         catId: luna.id,
@@ -111,7 +138,7 @@ async function main() {
       }
     });
 
-    // 6. Litter Record
+    // 7. Litter Record
     await prisma.litter.create({
       data: {
         motherId: luna.id,
@@ -122,73 +149,10 @@ async function main() {
       }
     });
 
-    // 7. Create Offspring
-    const nala = await prisma.cat.create({
-      data: {
-        ownerId: user.id,
-        name: 'Nala',
-        nickname: 'Nana',
-        breed: 'Tabby Mix',
-        gender: 'Female',
-        weight: 3.2,
-        birthDate: new Date('2023-01-10'),
-        color: 'Calico',
-        eyeColor: 'Yellow',
-        features: 'White paws, very playful',
-        isSpayed: true,
-        isArchived: false,
-        photoUrl: 'https://placekitten.com/202/202',
-        motherId: luna.id,
-        fatherId: simba.id,
-      },
-    });
-
-    const tiger = await prisma.cat.create({
-      data: {
-        ownerId: user.id,
-        name: 'Tiger',
-        nickname: 'Tiggy',
-        breed: 'Tabby Mix',
-        gender: 'Male',
-        weight: 3.5,
-        birthDate: new Date('2023-01-10'),
-        color: 'Grey Tabby',
-        eyeColor: 'Green',
-        features: 'Stripes all over',
-        isSpayed: true,
-        isArchived: false,
-        photoUrl: 'https://placekitten.com/203/203',
-        motherId: luna.id,
-        fatherId: simba.id,
-      },
-    });
-
-    // 8. Create Health Events
-    await prisma.healthEvent.create({
-      data: {
-        catId: luna.id,
-        title: 'Annual Vaccination',
-        eventType: 'Vaccination',
-        notes: 'Received FVRCP booster. Next due in 1 year.',
-        diagnosis: 'Routine',
-        date: new Date('2023-05-15'),
-      },
-    });
-
-    await prisma.healthEvent.create({
-      data: {
-        catId: nala.id,
-        title: 'Spay Surgery',
-        eventType: 'Surgery',
-        notes: 'Surgery went well. Recovered in 2 days.',
-        diagnosis: 'Healthy',
-        date: new Date('2023-07-20'),
-      },
-    });
-
     console.log('✅ Seed script finished successfully.');
-  } catch (error) {
-    console.error('❌ Seed failed:', error);
+  } catch (error: any) {
+    console.error('❌ Seed failed:', error.message);
+    console.log('💡 TIP: Check if your IP is whitelisted on Supabase.');
     (process as any).exit(1);
   } finally {
     await prisma.$disconnect();
