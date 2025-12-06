@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 const getBaseUrl = () => {
   // 1. If running on Web, use localhost
-  if (Platform.OS === 'web') return 'http://localhost:3000/api';
+  if (Platform.OS === 'web') return 'http://catly.up.railway.app:3000/api';
 
   // 2. If running on physical device via Expo Go, get the PC's IP
   const debuggerHost = Constants.expoConfig?.hostUri;
@@ -14,10 +14,10 @@ const getBaseUrl = () => {
   }
 
   // 3. Fallback for Android Emulator
-  if (Platform.OS === 'android') return 'http://10.0.2.2:3000/api';
+  if (Platform.OS === 'android') return 'http://catly.up.railway.app:3000/api';
 
   // 4. Fallback for iOS Simulator
-  return 'http://localhost:3000/api';
+  return 'http://catly.up.railway.app:3000/api';
 };
 
 const BASE_URL = getBaseUrl();

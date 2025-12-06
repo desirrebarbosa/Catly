@@ -1,17 +1,51 @@
 {
   "expo": {
+    "name": "Catly",
+    "slug": "catly-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/catly-logo-pink.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/catly-logo-pink.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5A9C8"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.catly.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/catly-logo-pink.png",
+        "backgroundColor": "#F5A9C8"
+      },
+      "package": "com.catly.mobile",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-image-picker",
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.24"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "6fc3abae-4d40-46fb-87ca-40f5a0070919"
-      }
-    },
-    "android": {
-      "package": "android.catly.com"
-    },
-    "ios": {
-      "bundleIdentifier": "ios.catly.com",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
       }
     }
   }
