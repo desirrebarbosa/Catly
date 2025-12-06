@@ -1,9 +1,11 @@
 {
   "name": "catly-api",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && tsc",
+    "start": "npx prisma db push && node dist/index.js",
     "dev": "nodemon src/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
@@ -29,7 +31,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^20.19.25",
+    "@types/node": "^20.11.20",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
     "nodemon": "^3.1.0",
