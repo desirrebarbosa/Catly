@@ -72,7 +72,7 @@ export const SetupProfileScreen = () => {
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top, paddingBottom: 16 }} className="px-6 flex-row items-center justify-between bg-primary z-10 shadow-sm">
           {isEditing && (
-              <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+              <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                  <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
               </TouchableOpacity>
           )}
@@ -94,11 +94,11 @@ export const SetupProfileScreen = () => {
                             <CameraIcon size={40} color="#D1D5DB" />
                         )}
                     </View>
-                    <View className="absolute bottom-0 right-0 bg-primary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                    <View className="absolute bottom-0 right-0 bg-primary w-9 h-9 rounded-2xl border-[3px] border-white items-center justify-center shadow-md">
                         <PlusIcon size={16} color="white" />
                     </View>
                 </TouchableOpacity>
-                <Text className="text-gray-400 font-bold text-xs mt-3 uppercase tracking-wider">Change Photo</Text>
+                <Text className="text-gray-400 font-bold text-xs mt-3 uppercase tracking-wider">Choose Photo</Text>
             </View>
 
             <View className="w-full gap-5">
@@ -116,7 +116,7 @@ export const SetupProfileScreen = () => {
                     <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Phone Number</Text>
                     <TextInput
                     className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-base text-secondary"
-                    placeholder="(555) 123-4567"
+                    placeholder="09xx xxx xxxx"
                     placeholderTextColor="#9FA5C0"
                     value={phone}
                     onChangeText={setPhone}
@@ -135,7 +135,9 @@ export const SetupProfileScreen = () => {
                     textAlignVertical="top"
                     />
                 </View>
-                <Button title="Save Details" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                <View>
+                  <Button title="Save Details" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                </View>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>

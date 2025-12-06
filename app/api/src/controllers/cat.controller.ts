@@ -62,7 +62,8 @@ export const getCatById = async (req: any, res: any) => {
         mother: true,
         father: true,
         childrenMother: true,
-        childrenFather: true
+        childrenFather: true,
+        weightLogs: { orderBy: { date: 'asc' } }
       }
     });
 
@@ -79,7 +80,7 @@ export const createCat = async (req: any, res: any) => {
     const { 
         name, nickname, breed, gender, weight, birthDate, 
         color, eyeColor, features, isSpayed, 
-        motherId, fatherId, photoUrl 
+        motherId, fatherId, litterId, photoUrl 
     } = req.body;
     
     const userId = req.userId;
@@ -109,9 +110,20 @@ export const createCat = async (req: any, res: any) => {
         isArchived: false, // EXPLICITLY set to false
         motherId: motherId || null,
         fatherId: fatherId || null,
+        litterId: litterId || null,
         photoUrl: finalPhotoUrl
       }
     });
+    
+    // If initial weight provided, create log
+    if (weight) {
+        await prisma.weightLog.create({
+            data: {
+                catId: newCat.id,
+                weight: Number(weight)
+            }
+        });
+    }
     
     console.log(`[API] Created new cat: ${newCat.name} (ID: ${newCat.id}) for user ${userId}`);
     res.status(201).json({ success: true, data: { cat: newCat } });
@@ -128,7 +140,7 @@ export const updateCat = async (req: any, res: any) => {
     const { 
         name, nickname, breed, gender, weight, birthDate, 
         color, eyeColor, features, isSpayed, isArchived, 
-        motherId, fatherId, photoUrl 
+        motherId, fatherId, litterId, photoUrl 
     } = req.body;
 
     // Check ownership before update
@@ -156,9 +168,20 @@ export const updateCat = async (req: any, res: any) => {
         isArchived,
         motherId: motherId || null,
         fatherId: fatherId || null,
+        litterId: litterId || null,
         photoUrl: photoUrl || undefined
       }
     });
+    
+    // Log weight change if different
+    if (weight !== undefined && weight !== existingCat.weight) {
+         await prisma.weightLog.create({
+            data: {
+                catId: id,
+                weight: Number(weight)
+            }
+        });
+    }
 
     res.json({ success: true, data: { cat: updatedCat } });
   } catch (error) {
@@ -190,11 +213,36 @@ export const deleteCat = async (req: any, res: any) => {
   }
 };
 
+export const logWeight = async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const userId = req.userId;
+        const { weight } = req.body;
+
+        const cat = await prisma.cat.findFirst({ where: { id, ownerId: userId } });
+        if (!cat) return res.status(404).json({ success: false, error: 'Cat not found' });
+
+        const log = await prisma.weightLog.create({
+            data: { catId: id, weight: Number(weight) }
+        });
+
+        // Update current weight on cat model
+        await prisma.cat.update({
+            where: { id },
+            data: { weight: Number(weight) }
+        });
+
+        res.status(201).json({ success: true, data: { log } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Failed to log weight' });
+    }
+};
+
 export const addHealthEvent = async (req: any, res: any) => {
   try {
     const { catId } = req.params;
     const userId = req.userId;
-    const { title, eventType, notes, diagnosis, date } = req.body;
+    const { title, eventType, notes, diagnosis, date, attachmentUrl } = req.body;
     
     // Check ownership
     const cat = await prisma.cat.findFirst({
@@ -212,6 +260,7 @@ export const addHealthEvent = async (req: any, res: any) => {
         eventType,
         notes,
         diagnosis,
+        attachmentUrl,
         date: date ? new Date(date) : new Date(),
       }
     });
@@ -226,6 +275,35 @@ export const addHealthEvent = async (req: any, res: any) => {
     console.error("Add Health Event Error:", error);
     res.status(500).json({ success: false, error: 'Failed to save event' });
   }
+};
+
+export const updateHealthEvent = async (req: any, res: any) => {
+    try {
+        const { eventId } = req.params;
+        const userId = req.userId;
+        const { title, eventType, notes, diagnosis, date, attachmentUrl } = req.body;
+
+        const event = await prisma.healthEvent.findUnique({
+            where: { id: eventId },
+            include: { cat: true }
+        });
+
+        if (!event || event.cat.ownerId !== userId) {
+            return res.status(404).json({ success: false, error: 'Event not found or unauthorized' });
+        }
+
+        const updatedEvent = await prisma.healthEvent.update({
+            where: { id: eventId },
+            data: {
+                title, eventType, notes, diagnosis, attachmentUrl,
+                date: date ? new Date(date) : undefined
+            }
+        });
+
+        res.json({ success: true, data: { event: updatedEvent } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Update failed' });
+    }
 };
 
 export const getHealthEvents = async (req: any, res: any) => {

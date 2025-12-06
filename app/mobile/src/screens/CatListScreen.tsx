@@ -113,7 +113,7 @@ export const CatListScreen = () => {
              
              <View className="flex-row gap-2">
                  <TouchableOpacity 
-                    className="bg-white p-3 rounded-2xl shadow-sm active:opacity-90"
+                    className="bg-white w-12 h-12 justify-center items-center rounded-2xl shadow-sm active:opacity-90"
                     onPress={() => navigation.navigate('AddCat')}
                 >
                     <PlusIcon size={24} color="#F5A9C8" strokeWidth={3} />
@@ -170,7 +170,7 @@ export const CatListScreen = () => {
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                     <View className="items-center mt-20 px-10 opacity-60">
-                        <Text className="text-6xl mb-4">🐱</Text>
+                        <Text className="text-6xl mb-4"></Text>
                         <Text className="text-secondary text-xl font-bold mb-2">No cats found.</Text>
                         <Text className="text-secondaryLight text-center leading-5">
                             {searchQuery 

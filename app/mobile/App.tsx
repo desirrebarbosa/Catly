@@ -5,9 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { CatProvider } from './src/context/CatContext';
-import { HomeIcon, CalendarDaysIcon, UserGroupIcon, UserCircleIcon, CubeIcon } from 'react-native-heroicons/solid';
+import { HomeIcon as HomeIconSolid, CalendarDaysIcon as CalendarDaysIconSolid, UserGroupIcon as UserGroupIconSolid, UserCircleIcon as UserCircleIconSolid, CubeIcon as CubeIconSolid } from 'react-native-heroicons/solid';
 import { View as RNView } from 'react-native';
 import * as Notifications from 'expo-notifications';
+
+const HomeIcon = HomeIconSolid as any;
+const CalendarDaysIcon = CalendarDaysIconSolid as any;
+const UserGroupIcon = UserGroupIconSolid as any;
+const UserCircleIcon = UserCircleIconSolid as any;
+const CubeIcon = CubeIconSolid as any;
 
 // Configure Notifications to show alert even when app is foregrounded
 Notifications.setNotificationHandler({
@@ -15,6 +21,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 

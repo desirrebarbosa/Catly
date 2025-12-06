@@ -84,7 +84,7 @@ export const AddLitterScreen = () => {
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary shadow-sm z-10">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text className="text-white text-xl font-bold">Record Litter</Text>
@@ -166,8 +166,8 @@ export const AddLitterScreen = () => {
                                   onPress={() => toggleKitten(cat.id)}
                                   className={`mr-4 items-center`}
                               >
-                                  <View className={`w-16 h-16 rounded-2xl p-0.5 ${isSelected ? 'bg-primary border-2 border-primary' : 'bg-gray-100'}`}>
-                                      <Image source={{ uri: cat.photoUrl || 'https://placekitten.com/100/100' }} className="w-full h-full rounded-[14px]" />
+                                  <View className={`w-16 h-16 rounded-full p-0.5 ${isSelected ? 'bg-primary border-2 border-primary' : 'bg-gray-100'}`}>
+                                      <Image source={{ uri: cat.photoUrl || 'https://placekitten.com/100/100' }} className="w-full h-full rounded-full" />
                                   </View>
                                   {isSelected && (
                                       <View className="absolute -top-1 -right-1 bg-white rounded-full">
@@ -196,7 +196,9 @@ export const AddLitterScreen = () => {
                   />
               </View>
 
-              <Button title="Save Litter" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+              <View>
+                <Button title="Save Litter" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+              </View>
           </View>
       </ScrollView>
 

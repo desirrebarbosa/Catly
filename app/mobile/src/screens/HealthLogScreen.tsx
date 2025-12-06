@@ -1,16 +1,17 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator } from 'react-native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator, Image as RNImage, Modal, ScrollView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, XMarkIcon } from 'react-native-heroicons/outline';
 import { 
   HeartIcon, 
   BeakerIcon, 
   ClipboardDocumentCheckIcon, 
   ScissorsIcon, 
   ExclamationTriangleIcon,
-  SparklesIcon
+  SparklesIcon,
+  PhotoIcon
 } from 'react-native-heroicons/solid';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -18,6 +19,7 @@ import api from '../services/api';
 
 const View = RNView as any;
 const Text = RNText as any;
+const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const ActivityIndicator = RNActivityIndicator as any;
 const FlatList = RNFlatList as any;
@@ -32,6 +34,7 @@ export const HealthLogScreen = () => {
   const { catId, catName } = (route.params as any);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewImage, setViewImage] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -48,44 +51,117 @@ export const HealthLogScreen = () => {
 
   const generatePDF = async () => {
     const htmlContent = `
-      <html>
-        <head>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Health Report - ${catName}</title>
           <style>
-            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; }
-            h1 { color: #F5A9C8; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-            th { background-color: #f2f2f2; color: #333; }
-            .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; background-color: #999; }
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+              body { 
+                font-family: 'Inter', sans-serif; 
+                padding: 40px; 
+                color: #1F2937;
+                background: #fff;
+              }
+              .header { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: flex-end; 
+                border-bottom: 3px solid #F5A9C8; 
+                padding-bottom: 20px; 
+                margin-bottom: 40px; 
+              }
+              .brand { font-size: 24px; font-weight: 900; color: #F5A9C8; letter-spacing: -0.5px; }
+              .title h1 { margin: 0; font-size: 32px; font-weight: 800; color: #111; }
+              .title h2 { margin: 5px 0 0; font-size: 14px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+              
+              .meta-grid { 
+                display: grid; 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 20px; 
+                background: #F9FAFB; 
+                padding: 20px; 
+                border-radius: 12px; 
+                margin-bottom: 40px; 
+                border: 1px solid #E5E7EB;
+              }
+              .meta-item label { display: block; font-size: 11px; color: #9CA3AF; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+              .meta-item span { font-size: 18px; font-weight: 700; color: #374151; }
+              
+              .table-container { border-radius: 8px; overflow: hidden; border: 1px solid #E5E7EB; }
+              table { width: 100%; border-collapse: collapse; }
+              th { background: #F3F4F6; color: #4B5563; font-weight: 700; text-transform: uppercase; font-size: 11px; padding: 12px 16px; text-align: left; }
+              td { border-top: 1px solid #E5E7EB; padding: 16px; vertical-align: top; }
+              tr:nth-child(even) { background: #F9FAFB; }
+              
+              .date-cell { white-space: nowrap; font-weight: 600; color: #6B7280; font-size: 13px; }
+              .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: #EEF2FF; color: #4F46E5; }
+              .badge.checkup { background: #DBEAFE; color: #1E40AF; }
+              .badge.vaccination { background: #D1FAE5; color: #065F46; }
+              .badge.illness { background: #FEE2E2; color: #991B1B; }
+              
+              .event-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; display: block; color: #111; }
+              .event-notes { font-size: 13px; color: #4B5563; line-height: 1.5; margin-top: 4px; }
+              .event-diag { font-size: 13px; color: #059669; font-weight: 600; margin-top: 4px; }
+              
+              .footer { margin-top: 60px; text-align: center; border-top: 1px solid #E5E7EB; padding-top: 20px; color: #9CA3AF; font-size: 12px; }
           </style>
-        </head>
-        <body>
-          <h1>Health Record: ${catName}</h1>
-          <p>Generated on ${new Date().toDateString()}</p>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Title</th>
-                <th>Diagnosis</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${events.map(e => `
-                <tr>
-                  <td>${new Date(e.date).toDateString()}</td>
-                  <td><span class="badge" style="background-color: #F5A9C8;">${e.eventType}</span></td>
-                  <td>${e.title}</td>
-                  <td>${e.diagnosis || '-'}</td>
-                  <td>${e.notes || '-'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </body>
+      </head>
+      <body>
+          <div class="header">
+              <div class="title">
+                  <h1>${catName}</h1>
+                  <h2>Medical History Report</h2>
+              </div>
+              <div class="brand">Catly</div>
+          </div>
+
+          <div class="meta-grid">
+              <div class="meta-item">
+                  <label>Patient Name</label>
+                  <span>${catName}</span>
+              </div>
+              <div class="meta-item">
+                  <label>Total Records</label>
+                  <span>${events.length}</span>
+              </div>
+              <div class="meta-item">
+                  <label>Generated On</label>
+                  <span>${new Date().toLocaleDateString()}</span>
+              </div>
+          </div>
+
+          <div class="table-container">
+              <table>
+                  <thead>
+                      <tr>
+                          <th style="width: 15%">Date</th>
+                          <th style="width: 15%">Type</th>
+                          <th>Details</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      ${events.map(e => `
+                        <tr>
+                            <td class="date-cell">${new Date(e.date).toLocaleDateString()}</td>
+                            <td><span class="badge ${e.eventType.toLowerCase()}">${e.eventType}</span></td>
+                            <td>
+                                <span class="event-title">${e.title}</span>
+                                ${e.diagnosis ? `<div class="event-diag">Diagnosis: ${e.diagnosis}</div>` : ''}
+                                ${e.notes ? `<div class="event-notes">${e.notes}</div>` : ''}
+                            </td>
+                        </tr>
+                      `).join('')}
+                  </tbody>
+              </table>
+          </div>
+
+          <div class="footer">
+              Generated by Catly App • Smart Cat Management
+          </div>
+      </body>
       </html>
     `;
 
@@ -129,6 +205,20 @@ export const HealthLogScreen = () => {
     const meta = getEventMeta(item.eventType);
     const dateObj = new Date(item.date);
     
+    // Parse Images
+    let photos: string[] = [];
+    try {
+        if(item.attachmentUrl) {
+            if(item.attachmentUrl.startsWith('[')) {
+                photos = JSON.parse(item.attachmentUrl);
+            } else {
+                photos = [item.attachmentUrl];
+            }
+        }
+    } catch (e) {
+        photos = [];
+    }
+
     return (
         <View className="flex-row px-6">
             {/* Timeline Left */}
@@ -149,7 +239,7 @@ export const HealthLogScreen = () => {
                                 {dateObj.toDateString()}
                              </Text>
                         </View>
-                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50 bg-gray-50 rounded-xl">
+                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50 bg-gray-50 rounded-2xl">
                             <TrashIcon size={18} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>
@@ -168,8 +258,18 @@ export const HealthLogScreen = () => {
                     )}
                     
                     {item.notes ? (
-                        <Text className="text-gray-500 leading-5 text-sm">{item.notes}</Text>
+                        <Text className="text-gray-500 leading-5 text-sm mb-3">{item.notes}</Text>
                     ) : null}
+
+                    {photos.length > 0 && (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ marginBottom: 20 }} >
+                            {photos.map((uri, idx) => (
+                                <TouchableOpacity key={idx} onPress={() => setViewImage(uri)} className="mr-2">
+                                    <Image source={{ uri }} className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200" />
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    )}
                 </View>
             </View>
         </View>
@@ -229,6 +329,21 @@ export const HealthLogScreen = () => {
             />
         )}
       </View>
+
+      {/* Image Modal */}
+      <Modal visible={!!viewImage} transparent={true} animationType="fade">
+           <View className="flex-1 bg-black/90 justify-center items-center">
+                <TouchableOpacity 
+                    onPress={() => setViewImage(null)}
+                    className="absolute top-12 right-6 p-2 bg-white/20 rounded-full z-10"
+                >
+                    <XMarkIcon color="white" size={24} />
+                </TouchableOpacity>
+                {viewImage && (
+                    <Image source={{ uri: viewImage }} className="w-full h-3/4" resizeMode="contain" />
+                )}
+           </View>
+      </Modal>
     </View>
   );
 };

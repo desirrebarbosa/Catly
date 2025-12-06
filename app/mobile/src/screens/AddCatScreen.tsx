@@ -129,14 +129,14 @@ export const AddCatScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Header Background */}
-      <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
+      <View className="absolute top-0 left-0 right-0 h-[100%] bg-primary" />
 
       {/* Header */}
       <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
         <View className="h-14 flex-row items-center justify-between">
             <TouchableOpacity 
                 onPress={() => navigation.goBack()}
-                className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+                className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
             >
                 <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
             </TouchableOpacity>
@@ -150,7 +150,7 @@ export const AddCatScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 40 }}
         >
-            <View className="h-24" />
+            <View className="h-16" />
 
             {/* Main Card */}
             <View className="bg-white rounded-t-[40px] px-6 pt-0 shadow-sm min-h-screen">
@@ -165,7 +165,7 @@ export const AddCatScreen = () => {
                                 <CameraIcon size={40} color="#D1D5DB" />
                             )}
                         </View>
-                        <View className="absolute bottom-1 right-1 bg-secondary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                        <View className="absolute bottom-1 right-1 bg-secondary w-9 h-9 rounded-2xl border-[3px] border-white items-center justify-center shadow-md">
                             <PlusIcon size={16} color="white" />
                         </View>
                     </TouchableOpacity>
@@ -175,16 +175,16 @@ export const AddCatScreen = () => {
                     {/* Basic Info */}
                     <View className="gap-4">
                         <SectionTitle title="Identity" />
-                        <InputGroup label="Name" value={name} onChangeText={setName} placeholder="e.g. Luna" />
-                        <InputGroup label="Nickname (Optional)" value={nickname} onChangeText={setNickname} placeholder="e.g. Lulu" />
+                        <InputGroup className = "mb-1" label="Name" value={name} onChangeText={setName} placeholder="e.g. Juan DelaCruz" />
+                        <InputGroup className = "mb-1" label="Nickname (Optional)" value={nickname} onChangeText={setNickname} placeholder="e.g. JD" />
                     </View>
                     
                     {/* Appearance */}
-                    <View className="gap-4">
+                    <View className="">
                         <SectionTitle title="Details" />
                         
-                        <View className="flex-row gap-4">
-                            <View className="flex-[1.5]">
+                        <View className="flex-row gap-2">
+                            <View className="">
                                 <InputGroup label="Breed" value={breed} onChangeText={setBreed} placeholder="e.g. Siamese" />
                             </View>
                             <View className="flex-1">
@@ -274,9 +274,9 @@ export const AddCatScreen = () => {
                     </View>
 
                     {/* Family - Pre-filled if coming from Litter screen */}
-                    <View className="gap-4">
+                    <View className="">
                         <SectionTitle title="Lineage" />
-                        <View className="flex-col gap-4 w-full">
+                        <View className="flex-col">
                             <ParentSelector 
                                 label="Mother (Dam)" 
                                 value={motherId ? cats.find(c => c.id === motherId)?.name : null} 
@@ -290,7 +290,7 @@ export const AddCatScreen = () => {
                         </View>
                     </View>
                     
-                    <View className="mt-4 mb-6">
+                    <View className="mb-8">
                         <Button title="Save Profile" onPress={handleSave} loading={loading} className="shadow-lg shadow-primary/30" />
                     </View>
                 </View>

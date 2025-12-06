@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { View as RNView, Text as RNText, Image as RNImage, ActivityIndicator as RNActivityIndicator, TouchableOpacity as RNTouchableOpacity, ScrollView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -53,7 +54,7 @@ export const FamilyTreeScreen = () => {
       >
         <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="mr-4 w-10 h-10 bg-gray-50 items-center justify-center rounded-full"
+            className="mr-4 w-10 h-10 bg-gray-50 items-center justify-center rounded-2xl"
         >
              <ChevronLeftIcon size={24} color="#F5A9C8" strokeWidth={2.5} />
         </TouchableOpacity>

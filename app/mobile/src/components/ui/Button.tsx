@@ -13,7 +13,7 @@ interface ButtonProps {
 }
 
 export const Button = ({ title, onPress, variant = 'primary', loading, className }: ButtonProps) => {
-  const baseStyle = "h-14 rounded-2xl items-center justify-center shadow-sm active:scale-95 transition-transform";
+  const baseStyle = "h-14 rounded-2xl items-center justify-center shadow-sm active:scale-[0.98] transition-transform";
   
   const variants = {
     primary: "bg-primary",
@@ -23,7 +23,7 @@ export const Button = ({ title, onPress, variant = 'primary', loading, className
   };
 
   const textVariants = {
-    primary: "text-white font-bold text-lg",
+    primary: "text-white font-bold text-lg tracking-wide",
     secondary: "text-secondary font-bold text-lg",
     outline: "text-primary font-bold text-lg",
     danger: "text-white font-bold text-lg",
@@ -34,6 +34,7 @@ export const Button = ({ title, onPress, variant = 'primary', loading, className
       onPress={onPress} 
       disabled={loading}
       className={`${baseStyle} ${variants[variant]} ${className}`}
+      activeOpacity={0.8}
     >
       {loading ? (
         <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? 'white' : '#F5A9C8'} />

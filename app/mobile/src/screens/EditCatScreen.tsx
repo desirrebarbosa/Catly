@@ -123,14 +123,14 @@ export const EditCatScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Pink Background Header */}
-      <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary rounded-b-[40px]" />
+      <View className="absolute top-0 left-0 right-0 h-[40%] bg-primary" />
 
       {/* Header */}
       <View style={{ paddingTop: insets.top }} className="px-6 pb-4 z-20">
         <View className="h-14 flex-row items-center justify-between">
             <TouchableOpacity 
                 onPress={() => navigation.goBack()}
-                className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+                className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
             >
                 <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
             </TouchableOpacity>
@@ -159,7 +159,7 @@ export const EditCatScreen = () => {
                                 <CameraIcon size={40} color="#D1D5DB" />
                             )}
                         </View>
-                        <View className="absolute bottom-1 right-1 bg-secondary w-9 h-9 rounded-full border-[3px] border-white items-center justify-center shadow-md">
+                        <View className="absolute bottom-1 right-1 bg-secondary w-9 h-9 rounded-2xl border-[3px] border-white items-center justify-center shadow-md">
                             <PencilIcon size={14} color="white" />
                         </View>
                     </TouchableOpacity>
@@ -174,10 +174,10 @@ export const EditCatScreen = () => {
                     </View>
                     
                     {/* Appearance */}
-                    <View className="gap-4">
+                    <View className="">
                         <SectionTitle title="Appearance" />
                         
-                        <View className="flex-row gap-4">
+                        <View className="flex-row gap-2">
                             <View className="flex-[1.5]">
                                 <InputGroup label="Breed" value={breed} onChangeText={setBreed} />
                             </View>
@@ -267,9 +267,9 @@ export const EditCatScreen = () => {
                     </View>
 
                     {/* Family - Vertical Stack */}
-                    <View className="gap-4">
-                        <SectionTitle title="Family" />
-                        <View className="flex-col gap-4 w-full">
+                    <View className="">
+                        <SectionTitle title="Lineage" />
+                        <View className="">
                             <ParentSelector 
                                 label="Mother" 
                                 value={motherId ? cats.find(c => c.id === motherId)?.name : null} 

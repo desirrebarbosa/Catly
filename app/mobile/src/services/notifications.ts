@@ -44,7 +44,7 @@ export const scheduleLocalNotification = async (title: string, body: string, hou
 
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: `Catly Reminder: ${title}`,
+      title: `🐱 Catly Reminder: ${title}`,
       body: body,
       sound: true,
     },

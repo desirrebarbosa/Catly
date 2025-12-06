@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/', contactController.getContacts);
 router.post('/', contactController.createContact);
+router.put('/:id', contactController.updateContact);
 router.delete('/:id', contactController.deleteContact);
 
 export const contactRouter = router;

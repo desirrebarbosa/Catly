@@ -108,7 +108,6 @@ export const ContactListScreen = () => {
                   onChangeText={setSearchQuery}
               />
           </View>
-          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press a card to edit</Text>
       </View>
 
       <View className="flex-1 bg-gray-50 pt-6 px-6">

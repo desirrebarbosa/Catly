@@ -131,7 +131,7 @@ export const AddScheduleScreen = () => {
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary shadow-sm z-10">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text className="text-white text-xl font-bold">{schedule ? 'Edit Schedule' : 'New Schedule'}</Text>
@@ -181,7 +181,7 @@ export const AddScheduleScreen = () => {
                     <TouchableOpacity 
                         key={type}
                         onPress={() => setTaskName(type)}
-                        className={`px-4 py-2.5 rounded-xl border ${taskName === type ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
+                        className={`px-4 py-2.5 rounded-2xl border ${taskName === type ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                     >
                         <Text className={`font-bold ${taskName === type ? 'text-white' : 'text-gray-500'}`}>{type}</Text>
                     </TouchableOpacity>
@@ -238,7 +238,7 @@ export const AddScheduleScreen = () => {
                         <TouchableOpacity 
                             key={opt}
                             onPress={() => setRecurrence(opt)}
-                            className={`flex-1 py-3 items-center rounded-xl border ${recurrence === opt ? 'bg-secondary border-secondary' : 'bg-white border-gray-200'}`}
+                            className={`flex-1 py-3 items-center rounded-2xl border ${recurrence === opt ? 'bg-secondary border-secondary' : 'bg-white border-gray-200'}`}
                         >
                             <Text className={`font-bold text-xs ${recurrence === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
                         </TouchableOpacity>

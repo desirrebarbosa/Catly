@@ -71,7 +71,7 @@ export const AddContactScreen = () => {
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary shadow-sm z-10">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text className="text-white text-xl font-bold">{contact ? 'Edit Contact' : 'New Contact'}</Text>
@@ -94,19 +94,23 @@ export const AddContactScreen = () => {
                             <TouchableOpacity 
                                 key={r} 
                                 onPress={() => setRole(r)}
-                                className={`px-4 py-2 rounded-xl border ${role === r ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
+                                className={`px-4 py-2 rounded-2xl border ${role === r ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                             >
                                 <Text className={`font-bold ${role === r ? 'text-white' : 'text-gray-500'}`}>{r}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                     {role === 'Other' && (
-                        <TextInput 
-                            className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary mt-3" 
-                            placeholder="Specify Role..."
-                            value={customRole} 
-                            onChangeText={setCustomRole} 
-                        />
+                        <View className="mt-3">
+                             <Text className="text-gray-400 font-bold text-xs mb-1 ml-1">Specify Role</Text>
+                             <TextInput 
+                                className="bg-gray-50 border border-primary/50 rounded-2xl h-14 px-4 text-base text-secondary" 
+                                placeholder="e.g. Groomer"
+                                value={customRole} 
+                                onChangeText={setCustomRole} 
+                                autoFocus
+                            />
+                        </View>
                     )}
                 </View>
 
@@ -118,7 +122,9 @@ export const AddContactScreen = () => {
                     <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Email</Text>
                     <TextInput className="bg-gray-50 border border-gray-100 rounded-2xl h-14 px-4 text-base text-secondary" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
                 </View>
-                <Button title={contact ? "Update Contact" : "Save Contact"} onPress={handleSave} loading={loading} className="mt-4" />
+                <View>
+                  <Button title={contact ? "Update Contact" : "Save Contact"} onPress={handleSave} loading={loading} className="mt-4" />
+                </View>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>

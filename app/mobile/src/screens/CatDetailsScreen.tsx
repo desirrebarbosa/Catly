@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { View as RNView, Text as RNText, Animated, Image as RNImage, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -97,14 +98,14 @@ export const CatDetailsScreen = () => {
           className="absolute w-full flex-row justify-between px-6 z-20"
       >
           <TouchableOpacity 
-              className="bg-black/20 backdrop-blur-md w-10 h-10 rounded-full items-center justify-center border border-white/20 shadow-sm"
+              className="bg-black/20 backdrop-blur-md w-10 h-10 rounded-2xl items-center justify-center border border-white/20 shadow-sm"
               onPress={() => navigation.goBack()}
           >
               <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
           </TouchableOpacity>
 
           <TouchableOpacity 
-              className="bg-black/20 backdrop-blur-md w-10 h-10 rounded-full items-center justify-center border border-white/20 shadow-sm"
+              className="bg-black/20 backdrop-blur-md w-10 h-10 rounded-2xl items-center justify-center border border-white/20 shadow-sm"
               onPress={() => navigation.navigate('EditCat', { cat: currentCat })}
           >
               <PencilIcon size={20} color="white" strokeWidth={2.5} />
@@ -169,11 +170,13 @@ export const CatDetailsScreen = () => {
                         <InfoRow label="Identifying Features" value={currentCat.features ? 'See Notes' : 'None listed'} />
                     </View>
                     
-                    <Button 
+                    <View className="gap-2">
+                        <Button  
                         title="View Adoption History" 
                         variant="secondary" 
                         onPress={() => navigation.navigate('AdoptionList', { catId: currentCat.id, catName: currentCat.name })}
-                    />
+                        />
+                    </View>
 
                     <View className="mt-4">
                         <Button 
@@ -232,11 +235,13 @@ export const CatDetailsScreen = () => {
                     
                     {/* Litter Tracking Button */}
                     {currentCat.gender === 'Female' && (
-                        <Button 
+                        <View className="gap-2">
+                            <Button 
                             title="Manage Litters" 
                             variant="secondary"
                             onPress={() => navigation.navigate('LitterList', { catId: currentCat.id, catName: currentCat.name })}
-                        />
+                            />
+                        </View>
                     )}
 
                     <View className="bg-white border border-gray-100 p-6 rounded-3xl">
@@ -276,11 +281,13 @@ export const CatDetailsScreen = () => {
                                 </Text>
                             )}
                         </View>
-                        <Button 
+                        <View className="gap-2">
+                            <Button 
                             title="Edit Notes" 
                             variant="secondary" 
                             onPress={() => navigation.navigate('EditCat', { cat: currentCat })}
-                        />
+                            />
+                        </View>
                     </View>
                 )}
             </View>

@@ -82,7 +82,7 @@ export const InventoryListScreen = () => {
                         <Image 
                             key={c.id} 
                             source={{ uri: c.photoUrl || 'https://placekitten.com/50/50' }} 
-                            className="w-6 h-6 rounded-xl mr-1 bg-gray-100 border border-gray-200" 
+                            className="w-6 h-6 rounded-full mr-1 bg-gray-100 border border-gray-200" 
                         />
                     ))}
                     {item.cats && item.cats.length === 0 && <Text className="text-gray-300 text-xs">All / General</Text>}
@@ -138,7 +138,6 @@ export const InventoryListScreen = () => {
                   )
               })}
           </ScrollView>
-          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press an item to edit</Text>
       </View>
       
       <View className="flex-1 bg-gray-50 pt-6 px-6">

@@ -116,7 +116,7 @@ export const AddAdoptionScreen = () => {
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary shadow-sm z-10">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text className="text-white text-xl font-bold">{adoption ? 'Edit Record' : 'New Record'}</Text>
@@ -134,7 +134,7 @@ export const AddAdoptionScreen = () => {
                             <TouchableOpacity 
                                 key={opt}
                                 onPress={() => setType(opt)}
-                                className={`px-4 py-2 rounded-xl border ${type === opt ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
+                                className={`px-4 py-2 rounded-2xl border ${type === opt ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                             >
                                 <Text className={`font-bold ${type === opt ? 'text-white' : 'text-gray-500'}`}>{opt}</Text>
                             </TouchableOpacity>
@@ -145,7 +145,7 @@ export const AddAdoptionScreen = () => {
                 <View>
                     <View className="flex-row justify-between items-end mb-2">
                         <Text className="text-gray-500 font-bold text-xs uppercase">New Owner / Adopter</Text>
-                        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center bg-gray-50 px-3 py-1 rounded-lg">
+                        <TouchableOpacity onPress={() => setModalVisible(true)} className="flex-row items-center bg-gray-50 px-3 py-1 rounded-2xl">
                             <UserGroupIcon size={14} color="#F5A9C8" />
                             <Text className="text-primary text-xs font-bold ml-1">Select from Contacts</Text>
                         </TouchableOpacity>

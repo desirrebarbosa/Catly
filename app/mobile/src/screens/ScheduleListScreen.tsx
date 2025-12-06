@@ -84,7 +84,7 @@ export const ScheduleListScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View style={{ paddingTop: insets.top }} className="px-6 pb-6 bg-primary z-10 shadow-sm rounded-b-[32px]">
+      <View style={{ paddingTop: insets.top }} className="px-6 pb-2 bg-primary z-10 shadow-sm rounded-b-[32px]">
           <View className="h-14 flex-row items-center justify-between">
              <Text className="text-white text-2xl font-extrabold tracking-tight">Schedules</Text>
              <TouchableOpacity 
@@ -94,7 +94,7 @@ export const ScheduleListScreen = () => {
                 <PlusIcon color="#F5A9C8" size={26} strokeWidth={2.5} />
              </TouchableOpacity>
           </View>
-          <Text className="text-white/60 text-xs font-medium mt-2 text-center">Long press a card to edit</Text>
+          <Text className="text-white/60 text-xs font-medium mt-2 text-center"></Text>
       </View>
       
       <View className="flex-1 bg-gray-50 pt-6 px-6">

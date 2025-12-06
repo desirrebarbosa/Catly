@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon as ChevronLeftIconOutline, CalendarDaysIcon as CalendarDaysIconOutline, CameraIcon as CameraIconOutline } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon as ChevronLeftIconOutline, CalendarDaysIcon as CalendarDaysIconOutline, CameraIcon as CameraIconOutline, XMarkIcon as XMarkIconOutline } from 'react-native-heroicons/outline';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '../components/ui/Button';
@@ -12,6 +12,7 @@ import api from '../services/api';
 const ChevronLeftIcon = ChevronLeftIconOutline as any;
 const CalendarDaysIcon = CalendarDaysIconOutline as any;
 const CameraIcon = CameraIconOutline as any;
+const XMarkIcon = XMarkIconOutline as any;
 
 // Cast components
 const View = RNView as any;
@@ -47,14 +48,15 @@ export const AddHealthEventScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
+  
+  // Multiple Photos
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
         quality: 0.5,
         base64: true,
       });
@@ -62,11 +64,17 @@ export const AddHealthEventScreen = () => {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const base64Data = result.assets[0].base64;
         const photoUri = `data:image/jpeg;base64,${base64Data}`;
-        setPhoto(photoUri);
+        setPhotos([...photos, photoUri]);
       }
     } catch (e) {
       Alert.alert('Error', 'Failed to pick image');
     }
+  };
+
+  const removeImage = (index: number) => {
+    const newPhotos = [...photos];
+    newPhotos.splice(index, 1);
+    setPhotos(newPhotos);
   };
 
   const handleSave = async () => {
@@ -83,7 +91,7 @@ export const AddHealthEventScreen = () => {
         notes,
         diagnosis,
         date: date.toISOString(),
-        attachmentUrl: photo
+        attachmentUrl: JSON.stringify(photos) // Store array as JSON string for now
       });
       
       if(res.success) {
@@ -116,7 +124,7 @@ export const AddHealthEventScreen = () => {
           <View className="h-14 flex-row items-center justify-between">
             <TouchableOpacity 
                 onPress={() => navigation.goBack()} 
-                className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md"
+                className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
             >
               <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -145,7 +153,7 @@ export const AddHealthEventScreen = () => {
                         <TouchableOpacity
                             key={type.label}
                             onPress={() => setEventType(type.label)}
-                            className={`px-3 py-2 rounded-xl border ${isActive ? `${type.color} ${type.border}` : 'bg-gray-50 border-gray-100'}`}
+                            className={`px-3 py-2 rounded-2xl border ${isActive ? `${type.color} ${type.border}` : 'bg-gray-50 border-gray-100'}`}
                         >
                             <Text className={`font-bold text-sm ${isActive ? 'text-white' : 'text-gray-500'}`}>
                             {type.label}
@@ -209,22 +217,27 @@ export const AddHealthEventScreen = () => {
                 />
 
                 {/* Attachments */}
-                <InputLabel text="Attachment (X-Ray, Lab Result)" />
-                <TouchableOpacity onPress={pickImage} className="mb-5">
-                    {photo ? (
-                        <View className="h-40 w-full rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
-                            <Image source={{ uri: photo }} className="w-full h-full" resizeMode="cover" />
-                            <View className="absolute bottom-2 right-2 bg-black/50 px-3 py-1 rounded-full">
-                                <Text className="text-white text-xs font-bold">Change</Text>
+                <InputLabel text="Attachments (X-Ray, Documents)" />
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ marginBottom: 20 }} >
+                    {photos.map((p, index) => (
+                        <View key={index} className="mr-3 relative">
+                            <View className="h-24 w-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
+                                <Image source={{ uri: p }} className="w-full h-full" resizeMode="cover" />
                             </View>
+                            <TouchableOpacity 
+                                onPress={() => removeImage(index)}
+                                className="absolute -top-2 -right-2 bg-red-500 rounded-xl p-1 border-2 border-white"
+                            >
+                                <XMarkIcon size={12} color="white" />
+                            </TouchableOpacity>
                         </View>
-                    ) : (
-                        <View className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl h-24 items-center justify-center flex-row">
-                            <CameraIcon size={24} color="#9CA3AF" />
-                            <Text className="text-gray-400 font-bold ml-2">Add Photo</Text>
-                        </View>
-                    )}
-                </TouchableOpacity>
+                    ))}
+                    
+                    <TouchableOpacity onPress={pickImage} className="h-24 w-24 bg-gray-50 border border-dashed border-gray-300 rounded-2xl items-center justify-center">
+                        <CameraIcon size={24} color="#9CA3AF" />
+                        <Text className="text-gray-400 font-bold mt-1 text-xs">Add</Text>
+                    </TouchableOpacity>
+                </ScrollView>
 
                 {/* Notes Input */}
                 <InputLabel text="Notes / Symptoms" />

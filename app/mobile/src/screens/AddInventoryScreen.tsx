@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView as RNScrollView, Image as RNImage, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform } from 'react-native';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView as RNScrollView, Image as RNImage, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, Modal } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, SparklesIcon } from 'react-native-heroicons/outline';
+import { ChevronLeftIcon, SparklesIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from 'react-native-heroicons/solid';
 import { useCats } from '../context/CatContext';
 import { Button } from '../components/ui/Button';
@@ -37,6 +37,7 @@ export const AddInventoryScreen = () => {
   const [selectedCatIds, setSelectedCatIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [smartMsg, setSmartMsg] = useState('');
+  const [showUnitPicker, setShowUnitPicker] = useState(false);
 
   useEffect(() => { 
       fetchCats(); 
@@ -52,10 +53,8 @@ export const AddInventoryScreen = () => {
 
   // Effect to handle unit disabling
   useEffect(() => {
-      if (category === 'Toy' || category === 'Other') {
-          setUnit('N/A');
-      } else if (unit === 'N/A') {
-          setUnit('pcs'); // Reset to default if switching back from Toy
+      if (category === 'Toy' || category === 'Other' || category === 'Litter') {
+          if (unit !== 'pcs') setUnit('pcs'); 
       }
   }, [category]);
 
@@ -81,16 +80,11 @@ export const AddInventoryScreen = () => {
           return;
       }
 
-      // Logic: 3% of body weight per day * 7 days buffer
       let totalWeight = 0;
-      let unknownWeights = 0;
-
       selectedCatIds.forEach(id => {
           const cat = cats.find(c => c.id === id);
           if (cat && cat.weight) {
               totalWeight += cat.weight;
-          } else {
-              unknownWeights++;
           }
       });
 
@@ -133,11 +127,13 @@ export const AddInventoryScreen = () => {
       else Alert.alert("Error", "Failed to save item.");
   };
 
+  const showUnits = !['Toy', 'Other', 'Litter'].includes(category);
+
   return (
     <View className="flex-1 bg-white">
        <View style={{ paddingTop: insets.top }} className="px-6 pb-4 bg-primary shadow-sm z-10">
           <View className="h-14 flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
                 <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text className="text-white text-xl font-bold">{item ? 'Edit Item' : 'Add Item'}</Text>
@@ -148,7 +144,6 @@ export const AddInventoryScreen = () => {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
             
-            {/* Input Group */}
             <View className="gap-5">
                 <View>
                     <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Item Name</Text>
@@ -165,7 +160,7 @@ export const AddInventoryScreen = () => {
                             <TouchableOpacity 
                                 key={cat}
                                 onPress={() => setCategory(cat)}
-                                className={`px-4 py-2 rounded-xl border ${category === cat ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
+                                className={`px-4 py-2 rounded-2xl border ${category === cat ? 'bg-primary border-primary' : 'bg-white border-gray-200'}`}
                             >
                                 <Text className={`font-bold ${category === cat ? 'text-white' : 'text-gray-500'}`}>{cat}</Text>
                             </TouchableOpacity>
@@ -173,7 +168,7 @@ export const AddInventoryScreen = () => {
                     </View>
                 </View>
 
-                <View className="flex-row gap-4">
+                <View className="flex-row">
                     <View className="flex-1">
                         <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Quantity</Text>
                         <TextInput 
@@ -181,31 +176,25 @@ export const AddInventoryScreen = () => {
                             value={quantity} onChangeText={setQuantity} keyboardType="numeric" placeholder="0" 
                         />
                     </View>
-                    <View className="flex-1">
-                        <Text className="text-gray-500 font-bold text-xs uppercase mb-2 ml-1">Unit</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="h-14">
-                            <View className="flex-row items-center gap-2">
-                                {unit === 'N/A' ? (
-                                    <View className="bg-gray-100 px-4 py-2 rounded-xl border border-gray-200">
-                                        <Text className="text-gray-400 font-bold">N/A</Text>
-                                    </View>
-                                ) : (
-                                    UNITS.map(u => (
-                                        <TouchableOpacity
-                                            key={u}
-                                            onPress={() => setUnit(u)}
-                                            className={`px-3 py-2 rounded-xl border ${unit === u ? 'bg-secondary border-secondary' : 'bg-white border-gray-200'}`}
-                                        >
-                                            <Text className={`font-bold ${unit === u ? 'text-white' : 'text-gray-500'}`}>{u}</Text>
-                                        </TouchableOpacity>
-                                    ))
-                                )}
+                    
+                    <View className="flex-1 px-2">
+                        <Text className={`font-bold text-xs uppercase mb-2 ml-1 ${!showUnits ? 'text-gray-300' : 'text-gray-500'}`}>Unit</Text>
+                        {showUnits ? (
+                            <TouchableOpacity 
+                                onPress={() => setShowUnitPicker(true)}
+                                className="h-14 flex-row items-center justify-between px-4 bg-gray-50 border border-gray-100 rounded-2xl"
+                            >
+                                <Text className="text-secondary font-bold text-base">{unit}</Text>
+                                <ChevronDownIcon size={16} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        ) : (
+                            <View className="h-14 justify-center px-4 bg-gray-50 border border-gray-100 rounded-2xl opacity-50">
+                                <Text className="text-gray-400 font-bold italic">N/A</Text>
                             </View>
-                        </ScrollView>
+                        )}
                     </View>
                 </View>
 
-                {/* Cat Selector */}
                 <View>
                     <View className="flex-row justify-between items-end mb-3 mt-2">
                         <Text className="text-gray-500 font-bold text-xs uppercase ml-1">Associated Cats</Text>
@@ -257,10 +246,37 @@ export const AddInventoryScreen = () => {
                     {smartMsg ? <Text className="text-primary text-xs mt-1 ml-1">{smartMsg}</Text> : null}
                 </View>
 
-                <Button title="Save Item" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                <View>
+                    <Button title="Save Item" onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                </View>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Unit Dropdown Modal */}
+      <Modal visible={showUnitPicker} transparent animationType="fade">
+          <View className="flex-1 bg-black/50 justify-center items-center px-6">
+              <View className="bg-white rounded-3xl w-full max-h-[70%] overflow-hidden">
+                  <View className="p-4 border-b border-gray-100 bg-gray-50">
+                      <Text className="text-center font-bold text-secondary">Select Unit</Text>
+                  </View>
+                  <ScrollView>
+                      {UNITS.map(u => (
+                          <TouchableOpacity 
+                              key={u} 
+                              onPress={() => { setUnit(u); setShowUnitPicker(false); }}
+                              className={`p-4 border-b border-gray-100 ${unit === u ? 'bg-primaryLight' : 'bg-white'}`}
+                          >
+                              <Text className={`text-center font-bold ${unit === u ? 'text-primaryDark' : 'text-gray-600'}`}>{u}</Text>
+                          </TouchableOpacity>
+                      ))}
+                  </ScrollView>
+                  <View className="p-4">
+                      <Button title="Cancel" variant="secondary" onPress={() => setShowUnitPicker(false)} />
+                  </View>
+              </View>
+          </View>
+      </Modal>
     </View>
   );
 };

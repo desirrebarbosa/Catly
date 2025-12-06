@@ -50,6 +50,10 @@ export const SignupScreen = () => {
     // Success handling is managed by AuthContext.isNewUser triggering App.tsx navigation
   };
 
+  const handleGoogleSignup = () => {
+    Alert.alert('Google Sign-Up', 'This feature would redirect to Google OAuth flow.');
+  };
+
   return (
     <View className="flex-1 bg-primary">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -93,6 +97,14 @@ export const SignupScreen = () => {
 
           <View className="w-full px-5 mt-2">
             <Button title="Sign up" onPress={handleSignup} loading={loading} />
+
+            <TouchableOpacity 
+                onPress={handleGoogleSignup}
+                className="flex-row items-center justify-center bg-white border border-gray-200 h-14 rounded-2xl mt-4 shadow-sm"
+            >
+                <Text className="text-gray-600 font-bold text-lg mr-2">G</Text>
+                <Text className="text-secondary font-bold text-base">Sign up with Google</Text>
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} className="mt-5">

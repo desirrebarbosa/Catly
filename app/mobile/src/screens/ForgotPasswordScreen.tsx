@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, Alert } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -28,7 +29,7 @@ export const ForgotPasswordScreen = () => {
   return (
     <View className="flex-1 bg-primary">
        <View style={{ paddingTop: insets.top, paddingBottom: 16 }} className="px-6 flex-row items-center">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-full backdrop-blur-md">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md">
              <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
           </TouchableOpacity>
        </View>
