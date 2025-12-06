@@ -57,30 +57,25 @@ export const LoginScreen = () => {
       // If success, Context updates
   };
 
-  const handleGoogleLogin = async () => {
-      // In a real Expo app, we use `expo-auth-session/providers/google` here.
-      // Since we cannot inject native config dynamically, we simulate the token retrieval.
-      // Assuming user has a valid ID Token:
-      // const response = await promptAsync(); 
-      // if (response?.type === 'success') { const { id_token } = response.params; ... }
-      
-      Alert.alert(
-          'Google Sign-In', 
-          'In a full build, this opens the Google Auth sheet. We will simulate sending a test token to the backend.',
-          [
-              { text: 'Cancel', style: 'cancel' },
-              { 
-                  text: 'Simulate Success', 
-                  onPress: async () => {
-                      setLoading(true);
-                      const res = await googleLogin("mock_google_id_token_12345");
-                      setLoading(false);
-                      if(!res.success) Alert.alert("Error", res.error);
-                  }
-              }
-          ]
-      );
-  };
+  // const handleGoogleLogin = async () => {
+
+  //     Alert.alert(
+  //         'Google Sign-In', 
+  //         'In a full build, this opens the Google Auth sheet. We will simulate sending a test token to the backend.',
+  //         [
+  //             { text: 'Cancel', style: 'cancel' },
+  //             { 
+  //                 text: 'Simulate Success', 
+  //                 onPress: async () => {
+  //                     setLoading(true);
+  //                     const res = await googleLogin("mock_google_id_token_12345");
+  //                     setLoading(false);
+  //                     if(!res.success) Alert.alert("Error", res.error);
+  //                 }
+  //             }
+  //         ]
+  //     );
+  // };
 
   return (
     <View className="flex-1 bg-primary">
@@ -115,13 +110,13 @@ export const LoginScreen = () => {
           <View className="w-full px-5 mt-2">
             <Button title="Log in" onPress={handleLogin} loading={loading} />
             
-            <TouchableOpacity 
-                onPress={handleGoogleLogin}
+            {/* <TouchableOpacity 
+                // onPress={handleGoogleLogin}
                 className="flex-row items-center justify-center bg-white border border-gray-200 h-14 rounded-2xl mt-4 shadow-sm"
             >
                 <Text className="text-gray-600 font-bold text-lg mr-2">G</Text>
                 <Text className="text-secondary font-bold text-base">Continue with Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Signup')} className="mt-5">

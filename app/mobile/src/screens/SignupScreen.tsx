@@ -98,13 +98,13 @@ export const SignupScreen = () => {
           <View className="w-full px-5 mt-2">
             <Button title="Sign up" onPress={handleSignup} loading={loading} />
 
-            <TouchableOpacity 
+            {/* <TouchableOpacity 
                 onPress={handleGoogleSignup}
                 className="flex-row items-center justify-center bg-white border border-gray-200 h-14 rounded-2xl mt-4 shadow-sm"
             >
                 <Text className="text-gray-600 font-bold text-lg mr-2">G</Text>
                 <Text className="text-secondary font-bold text-base">Sign up with Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} className="mt-5">
