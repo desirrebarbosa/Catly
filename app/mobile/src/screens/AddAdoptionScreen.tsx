@@ -203,8 +203,9 @@ export const AddAdoptionScreen = () => {
                         textAlignVertical="top" 
                     />
                 </View>
-
-                <Button title={adoption ? "Update Record" : "Save Record"} onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                <View>
+                    <Button title={adoption ? "Update Record" : "Save Record"} onPress={handleSave} loading={loading} className="mt-4 shadow-lg shadow-primary/20" />
+                </View>
             </View>
         </ScrollView>
       </KeyboardAvoidingView>

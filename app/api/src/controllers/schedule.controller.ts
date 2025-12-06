@@ -109,3 +109,34 @@ export const deleteSchedule = async (req: any, res: any) => {
     res.status(500).json({ success: false, error: 'Delete failed' });
   }
 };
+
+export const toggleComplete = async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+    
+    const schedule = await prisma.schedule.findFirst({ where: { id, userId } });
+    if (!schedule) return res.status(404).json({ success: false, error: 'Not found' });
+
+    // Logic: If completed today, toggle off. If not, set to now.
+    const now = new Date();
+    // @ts-ignore - Assuming schema has lastCompletedDate
+    const last = schedule.lastCompletedDate ? new Date(schedule.lastCompletedDate) : null;
+    
+    let newDate: Date | null = now;
+    
+    if (last && last.toDateString() === now.toDateString()) {
+        newDate = null; // Undo completion
+    }
+
+    const updated = await prisma.schedule.update({
+        where: { id },
+        data: { lastCompletedDate: newDate }
+    });
+
+    res.json({ success: true, data: { schedule: updated } });
+  } catch (e) {
+      console.error(e);
+      res.status(500).json({success:false, error: 'Update failed. Ensure DB schema has lastCompletedDate.'});
+  }
+};

@@ -10,5 +10,6 @@ router.get('/', scheduleController.getSchedules);
 router.post('/', scheduleController.createSchedule);
 router.put('/:id', scheduleController.updateSchedule);
 router.delete('/:id', scheduleController.deleteSchedule);
+router.post('/:id/complete', scheduleController.toggleComplete);
 
 export const scheduleRouter = router;

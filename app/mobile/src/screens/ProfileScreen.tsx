@@ -119,8 +119,8 @@ export const ProfileScreen = () => {
                 </View>
                 
                 {/* Security Section */}
-                <View className="bg-white p-6 rounded-[30px] shadow-lg shadow-black/5 border border-gray-100 mb-6">
-                     <View className="flex-row items-center mb-4">
+                <View >
+                     {/* <View className="flex-row items-center mb-4">
                          <ShieldCheckIcon size={20} color="#3B82F6" />
                          <Text className="text-gray-400 text-xs font-extrabold uppercase tracking-widest ml-2">Security</Text>
                      </View>
@@ -135,7 +135,7 @@ export const ProfileScreen = () => {
                             trackColor={{ false: '#767577', true: '#F5A9C8' }}
                             thumbColor={user?.is2FAEnabled ? '#fff' : '#f4f3f4'}
                          />
-                     </View>
+                     </View> */}
                 </View>
 
                 {/* Actions */}

@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, ScrollView as RNScrollView, Alert, KeyboardAvoidingView as RNKeyboardAvoidingView, Platform, TouchableOpacity as RNTouchableOpacity, Modal, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon as ChevronLeftIconOutline, CalendarDaysIcon as CalendarDaysIconOutline, CameraIcon as CameraIconOutline, XMarkIcon as XMarkIconOutline } from 'react-native-heroicons/outline';
@@ -21,6 +20,7 @@ const TextInput = RNTextInput as any;
 const KeyboardAvoidingView = RNKeyboardAvoidingView as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const Image = RNImage as any;
+const ScrollView = RNScrollView as any;
 
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
@@ -38,7 +38,7 @@ export const AddHealthEventScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const route = useRoute();
-  const { catName, catId } = (route.params as any) || { catName: 'Cat' };
+  const { catName, catId, event } = (route.params as any) || { catName: 'Cat' };
 
   // Form State
   const [eventType, setEventType] = useState('Checkup');
@@ -48,9 +48,31 @@ export const AddHealthEventScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  // Multiple Photos
   const [photos, setPhotos] = useState<string[]>([]);
+
+  // Initialize if editing
+  useEffect(() => {
+    if (event) {
+        setTitle(event.title);
+        setEventType(event.eventType);
+        setDiagnosis(event.diagnosis || '');
+        setNotes(event.notes || '');
+        setDate(new Date(event.date));
+        
+        if (event.attachmentUrl) {
+            try {
+                // Handle legacy single string or new JSON array
+                if (event.attachmentUrl.startsWith('[')) {
+                    setPhotos(JSON.parse(event.attachmentUrl));
+                } else {
+                    setPhotos([event.attachmentUrl]);
+                }
+            } catch (e) {
+                setPhotos([]);
+            }
+        }
+    }
+  }, [event]);
 
   const pickImage = async () => {
     try {
@@ -85,14 +107,23 @@ export const AddHealthEventScreen = () => {
 
     setLoading(true);
     try {
-      const res = await api.post(`/cats/${catId}/health`, {
+      const payload = {
         title,
         eventType,
         notes,
         diagnosis,
         date: date.toISOString(),
-        attachmentUrl: JSON.stringify(photos) // Store array as JSON string for now
-      });
+        attachmentUrl: JSON.stringify(photos)
+      };
+
+      let res;
+      if (event) {
+          // Update existing
+          res = await api.put(`/cats/health/${event.id}`, payload);
+      } else {
+          // Create new
+          res = await api.post(`/cats/${catId}/health`, payload);
+      }
       
       if(res.success) {
           Alert.alert('Saved', 'Health event recorded successfully.');
@@ -128,16 +159,16 @@ export const AddHealthEventScreen = () => {
             >
               <ChevronLeftIcon color="white" size={24} strokeWidth={2.5} />
             </TouchableOpacity>
-            <Text className="text-xl font-bold text-white tracking-wide">New Event</Text>
+            <Text className="text-xl font-bold text-white tracking-wide">{event ? 'Edit Event' : 'New Event'}</Text>
             <View className="w-10" />
         </View>
       </View>
       
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           
-          <View className="px-6 mt-4">
-            <View className="bg-white rounded-[30px] p-6 shadow-sm shadow-black/5 min-h-[500px]">
+          <View className="mx-4 mt-4">
+            <View className="bg-white rounded-[32px] p-6 shadow-sm shadow-black/5 min-h-[500px] border border-gray-100">
                 {/* Header Info */}
                 <View className="mb-6 border-b border-gray-100 pb-4">
                     <Text className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-1">Patient</Text>
@@ -145,7 +176,7 @@ export const AddHealthEventScreen = () => {
                 </View>
 
                 {/* Event Type Selector */}
-                <Text className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-3">Event Type</Text>
+                <Text className="text-gray-500 font-bold uppercase text-xs tracking-widest mb-3">Event Type</Text>
                 <View className="flex-row flex-wrap gap-2 mb-6">
                     {EVENT_TYPES.map((type) => {
                         const isActive = eventType === type.label;
@@ -177,7 +208,7 @@ export const AddHealthEventScreen = () => {
                 {showDatePicker && (
                     <Modal visible={showDatePicker} transparent animationType="fade">
                         <View className="flex-1 justify-center bg-black/50 px-6">
-                            <View className="bg-white rounded-3xl p-4">
+                            <View className="bg-white rounded-3xl p-4 w-full">
                                 <DateTimePicker
                                     value={date}
                                     mode="date"
@@ -218,7 +249,7 @@ export const AddHealthEventScreen = () => {
 
                 {/* Attachments */}
                 <InputLabel text="Attachments (X-Ray, Documents)" />
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ marginBottom: 20 }} >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
                     {photos.map((p, index) => (
                         <View key={index} className="mr-3 relative">
                             <View className="h-24 w-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
@@ -226,7 +257,7 @@ export const AddHealthEventScreen = () => {
                             </View>
                             <TouchableOpacity 
                                 onPress={() => removeImage(index)}
-                                className="absolute -top-2 -right-2 bg-red-500 rounded-xl p-1 border-2 border-white"
+                                className="absolute -top-2 -right-2 bg-red-500 rounded-xl p-1.5 border-2 border-white"
                             >
                                 <XMarkIcon size={12} color="white" />
                             </TouchableOpacity>
@@ -242,7 +273,7 @@ export const AddHealthEventScreen = () => {
                 {/* Notes Input */}
                 <InputLabel text="Notes / Symptoms" />
                 <TextInput
-                    className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-base text-secondary mb-6 h-32 leading-5"
+                    className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-base text-secondary mb-6 h-32 leading-5 font-medium"
                     placeholder="Add detailed notes here..."
                     placeholderTextColor="#D1D5DB"
                     multiline
@@ -252,7 +283,7 @@ export const AddHealthEventScreen = () => {
                 />
 
                 <Button 
-                    title="Save Record" 
+                    title={event ? "Update Record" : "Save Record"} 
                     onPress={handleSave} 
                     loading={loading} 
                     className="shadow-lg shadow-primary/30"
@@ -266,5 +297,5 @@ export const AddHealthEventScreen = () => {
 };
 
 const InputLabel = ({ text }: { text: string }) => (
-    <Text className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-2 ml-1">{text}</Text>
+    <Text className="text-gray-500 font-bold uppercase text-xs tracking-widest mb-1.5 ml-1">{text}</Text>
 );

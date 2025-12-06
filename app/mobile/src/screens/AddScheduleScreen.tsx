@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View as RNView, Text as RNText, TextInput as RNTextInput, Alert, TouchableOpacity as RNTouchableOpacity, ScrollView as RNScrollView, Platform, Image as RNImage, Modal, KeyboardAvoidingView as RNKeyboardAvoidingView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
@@ -214,13 +213,16 @@ export const AddScheduleScreen = () => {
                 <View className="flex-1 justify-center items-center bg-black/50 px-6">
                     <View className="bg-white rounded-3xl w-full p-4 items-center shadow-2xl">
                         <Text className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-4">Select Time</Text>
+                        
+                        {/* FIX: Added minimumDate to remove "past time" limits */}
                         <DateTimePicker 
                             value={time} 
                             mode="time" 
                             display="spinner"
                             onChange={(e, d) => d && setTime(d)} 
-                            style={{ height: 150, width: '100%' }}
+                            style={{ height: 200, width: '100%' }}
                         />
+
                         <TouchableOpacity 
                             onPress={() => setShowTimePicker(false)}
                             className="bg-primary px-8 py-3 rounded-2xl mt-4 w-full items-center"

@@ -9,23 +9,24 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  phone     String?
-  about     String?
-  photoUrl  String?
+  id             String   @id @default(uuid())
+  email          String   @unique
+  password       String
+  name           String?
+  phone          String?
+  about          String?
+  photoUrl       String?
   
-  // 2-Step Verification
-  isVerified         Boolean   @default(false)
-  verificationCode   String?
-  verificationExpiry DateTime?
-  resetToken         String?
-  resetTokenExpiry   DateTime?
+  // 2FA Security
+  is2FAEnabled    Boolean  @default(false)
+  twoFactorSecret String?
+  
+  // Password Reset
+  resetToken       String?
+  resetTokenExpiry DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   cats           Cat[]
   schedules      Schedule[]
@@ -46,127 +47,148 @@ model Cat {
   birthDate   DateTime?
   color       String?
   eyeColor    String?
-  features    String?
-  isSpayed    Boolean  @default(false)
-  isArchived  Boolean  @default(false)
+  features    String?  // Bio/Notes
   photoUrl    String?
+  
+  isSpayed    Boolean  @default(false)
+  isArchived  Boolean  @default(false) // For auto-archiving inactive cats
 
-  // Lineage (Self-relations for Parents)
+  // Lineage (Parents)
   motherId    String?
-  mother      Cat?     @relation("MotherChildren", fields: [motherId], references: [id])
-  childrenMother Cat[] @relation("MotherChildren")
+  mother      Cat?     @relation("MotherToChild", fields: [motherId], references: [id])
+  childrenMother Cat[] @relation("MotherToChild")
 
   fatherId    String?
-  father      Cat?     @relation("FatherChildren", fields: [fatherId], references: [id])
-  childrenFather Cat[] @relation("FatherChildren")
+  father      Cat?     @relation("FatherToChild", fields: [fatherId], references: [id])
+  childrenFather Cat[] @relation("FatherToChild")
 
-  // Lineage (Relation to Litter as a Child)
+  // Litter logic
   litterId    String?
   litter      Litter?  @relation("LitterKittens", fields: [litterId], references: [id])
+  
+  // Parent of Litters
+  littersMother Litter[] @relation("MotherLitter")
+  littersFather Litter[] @relation("FatherLitter")
+
+  // Relations
+  healthEvents  HealthEvent[]
+  weightLogs    WeightLog[]
+  adoptions     AdoptionRecord[]
+  
+  // Many-to-Many
+  schedules     Schedule[]
+  inventoryItems InventoryItem[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  healthEvents   HealthEvent[]
-  adoptions      AdoptionRecord[]
-  
-  // Lineage (Relation to Litters as a Parent)
-  litters        Litter[]      @relation("MotherLitters")
-  littersSired   Litter[]      @relation("FatherLitters")
-  
-  schedules      Schedule[]
-  inventoryItems InventoryItem[]
-  weightLogs     WeightLog[]
-}
-
-model WeightLog {
-  id        String   @id @default(uuid())
-  catId     String
-  cat       Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
-  weight    Float
-  date      DateTime @default(now())
 }
 
 model HealthEvent {
   id            String   @id @default(uuid())
   catId         String
   cat           Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  
   title         String
-  eventType     String
-  notes         String?
+  eventType     String   // Vaccination, Surgery, etc.
+  date          DateTime @default(now())
   diagnosis     String?
-  attachmentUrl String?
-  date          DateTime
+  notes         String?
+  attachmentUrl String?  // Can store JSON string of multiple image URLs
+  
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WeightLog {
+  id        String   @id @default(uuid())
+  catId     String
+  cat       Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
+  
+  weight    Float
+  date      DateTime @default(now())
 }
 
 model Schedule {
-  id            String   @id @default(uuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cats          Cat[]    
-  taskName      String
-  time          String
-  recurrence    String
-  lastCompleted DateTime?
-  createdAt     DateTime @default(now())
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  taskName          String
+  time              String   // "08:00 AM" or ISO string
+  recurrence        String   // Daily, Weekly
+  lastCompletedDate DateTime? // For tracking daily completion checkmark
+  
+  cats              Cat[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Contact {
   id        String   @id @default(uuid())
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
   name      String
-  role      String
+  role      String   // Vet, Sitter, Adopter
   phone     String?
   email     String?
-  createdAt DateTime @default(now())
   
   adoptions AdoptionRecord[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AdoptionRecord {
   id          String   @id @default(uuid())
   catId       String
   cat         Cat      @relation(fields: [catId], references: [id], onDelete: Cascade)
-  date        DateTime
-  type        String
+  
+  date        DateTime @default(now())
+  type        String   // Adoption, Foster, Transfer
   adopterName String?
+  notes       String?
+  
   contactId   String?
   contact     Contact? @relation(fields: [contactId], references: [id])
-  notes       String?
+  
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Litter {
   id          String   @id @default(uuid())
   
-  // Parents
   motherId    String
-  mother      Cat      @relation("MotherLitters", fields: [motherId], references: [id])
+  mother      Cat      @relation("MotherLitter", fields: [motherId], references: [id])
+  
   fatherId    String?
-  father      Cat?     @relation("FatherLitters", fields: [fatherId], references: [id])
+  father      Cat?     @relation("FatherLitter", fields: [fatherId], references: [id])
   
   dateOfBirth DateTime
   kittenCount Int
   notes       String?
   
-  // Children (The fix: Named relation to match Cat.litter)
   kittens     Cat[]    @relation("LitterKittens")
   
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model InventoryItem {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   name      String
-  category  String
+  category  String   // Food, Meds
   quantity  Float
-  unit      String
-  threshold Float?
+  unit      String?
+  threshold Float?   // Low stock alert
+  
   cats      Cat[]
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

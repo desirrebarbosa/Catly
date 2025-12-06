@@ -1,21 +1,42 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator, Image as RNImage, Modal, ScrollView } from 'react-native';
+import { View as RNView, Text as RNText, FlatList as RNFlatList, TouchableOpacity as RNTouchableOpacity, Alert, ActivityIndicator as RNActivityIndicator, Image as RNImage, Modal, ScrollView as RNScrollView } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, PlusIcon, TrashIcon, ArrowDownTrayIcon, XMarkIcon } from 'react-native-heroicons/outline';
 import { 
-  HeartIcon, 
-  BeakerIcon, 
-  ClipboardDocumentCheckIcon, 
-  ScissorsIcon, 
-  ExclamationTriangleIcon,
-  SparklesIcon,
-  PhotoIcon
+  ChevronLeftIcon as ChevronLeftIconOutline, 
+  PlusIcon as PlusIconOutline, 
+  TrashIcon as TrashIconOutline, 
+  ArrowDownTrayIcon as ArrowDownTrayIconOutline, 
+  XMarkIcon as XMarkIconOutline
+} from 'react-native-heroicons/outline';
+import { 
+  HeartIcon as HeartIconSolid, 
+  BeakerIcon as BeakerIconSolid, 
+  ClipboardDocumentCheckIcon as ClipboardDocumentCheckIconSolid, 
+  ScissorsIcon as ScissorsIconSolid, 
+  ExclamationTriangleIcon as ExclamationTriangleIconSolid,
+  SparklesIcon as SparklesIconSolid,
+  PhotoIcon as PhotoIconSolid
 } from 'react-native-heroicons/solid';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import api from '../services/api';
+
+// Fix for icon type errors
+const ChevronLeftIcon = ChevronLeftIconOutline as any;
+const PlusIcon = PlusIconOutline as any;
+const TrashIcon = TrashIconOutline as any;
+const ArrowDownTrayIcon = ArrowDownTrayIconOutline as any;
+const XMarkIcon = XMarkIconOutline as any;
+
+const HeartIcon = HeartIconSolid as any;
+const BeakerIcon = BeakerIconSolid as any;
+const ClipboardDocumentCheckIcon = ClipboardDocumentCheckIconSolid as any;
+const ScissorsIcon = ScissorsIconSolid as any;
+const ExclamationTriangleIcon = ExclamationTriangleIconSolid as any;
+const SparklesIcon = SparklesIconSolid as any;
+const PhotoIcon = PhotoIconSolid as any;
 
 const View = RNView as any;
 const Text = RNText as any;
@@ -23,9 +44,13 @@ const Image = RNImage as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const ActivityIndicator = RNActivityIndicator as any;
 const FlatList = RNFlatList as any;
+const ScrollView = RNScrollView as any;
+
 const useNavigation = (ReactNavigation as any).useNavigation;
 const useRoute = (ReactNavigation as any).useRoute;
 const useFocusEffect = (ReactNavigation as any).useFocusEffect;
+
+const EVENT_TYPES = ['All', 'Checkup', 'Vaccination', 'Illness', 'Medication', 'Surgery', 'Procedure'];
 
 export const HealthLogScreen = () => {
   const route = useRoute();
@@ -35,6 +60,7 @@ export const HealthLogScreen = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewImage, setViewImage] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState('All');
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -48,6 +74,8 @@ export const HealthLogScreen = () => {
       fetchEvents();
     }, [catId])
   );
+
+  const filteredEvents = events.filter(e => filterType === 'All' || e.eventType === filterType);
 
   const generatePDF = async () => {
     const htmlContent = `
@@ -183,6 +211,10 @@ export const HealthLogScreen = () => {
     ]);
   };
 
+  const handleEdit = (event: any) => {
+    navigation.navigate('AddHealthEvent', { catId, catName, event });
+  };
+
   const getEventMeta = (type: string) => {
       switch(type) {
           case 'Vaccination': 
@@ -201,7 +233,7 @@ export const HealthLogScreen = () => {
   };
 
   const renderItem = ({ item, index }: { item: any, index: number }) => {
-    const isLast = index === events.length - 1;
+    const isLast = index === filteredEvents.length - 1;
     const meta = getEventMeta(item.eventType);
     const dateObj = new Date(item.date);
     
@@ -231,7 +263,11 @@ export const HealthLogScreen = () => {
 
             {/* Content Card */}
             <View className="flex-1 pb-6">
-                <View className={`bg-white p-4 rounded-[24px] border shadow-sm ${meta.border}`}>
+                <TouchableOpacity 
+                    activeOpacity={0.8}
+                    onLongPress={() => handleEdit(item)}
+                    className={`bg-white p-4 rounded-[24px] border shadow-sm ${meta.border}`}
+                >
                     <View className="flex-row justify-between items-start mb-1">
                         <View className="flex-1 mr-2">
                              <Text className="text-secondary font-bold text-lg">{item.title}</Text>
@@ -239,9 +275,11 @@ export const HealthLogScreen = () => {
                                 {dateObj.toDateString()}
                              </Text>
                         </View>
-                        <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 opacity-50 bg-gray-50 rounded-2xl">
-                            <TrashIcon size={18} color="#9CA3AF" />
-                        </TouchableOpacity>
+                        <View className="flex-row gap-1">
+                             <TouchableOpacity onPress={() => handleDelete(item.id)} className="p-2 -mr-2 -mt-2 bg-gray-50 rounded-xl">
+                                <TrashIcon size={16} color="#EF4444" />
+                             </TouchableOpacity>
+                        </View>
                     </View>
                     
                     {/* Event Type Badge */}
@@ -262,7 +300,7 @@ export const HealthLogScreen = () => {
                     ) : null}
 
                     {photos.length > 0 && (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ marginBottom: 20 }} >
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
                             {photos.map((uri, idx) => (
                                 <TouchableOpacity key={idx} onPress={() => setViewImage(uri)} className="mr-2">
                                     <Image source={{ uri }} className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200" />
@@ -270,7 +308,7 @@ export const HealthLogScreen = () => {
                             ))}
                         </ScrollView>
                     )}
-                </View>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -278,32 +316,52 @@ export const HealthLogScreen = () => {
 
   return (
     <View className="flex-1 bg-white">
-      <View style={{ paddingTop: insets.top }} className="px-6 pb-6 bg-primary z-20 shadow-sm rounded-b-[32px]">
-        <View className="h-14 flex-row items-center justify-between w-full">
-            <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            className="w-12 h-12 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
-            >
-            <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
-            </TouchableOpacity>
-            <View className="items-center">
-                <Text className="text-white text-lg font-bold">Health Timeline</Text>
-                <Text className="text-white/80 text-xs font-medium">{catName}</Text>
-            </View>
-            <View className="flex-row gap-2">
+      <View style={{ paddingTop: insets.top }} className="bg-primary z-20 shadow-sm rounded-b-[32px]">
+        <View className="px-6 pb-4">
+            <View className="h-14 flex-row items-center justify-between w-full">
                 <TouchableOpacity 
-                    className="bg-white/20 w-12 h-12 rounded-2xl justify-center items-center"
-                    onPress={generatePDF}
+                onPress={() => navigation.goBack()} 
+                className="w-12 h-12 bg-white/20 items-center justify-center rounded-2xl backdrop-blur-md"
                 >
-                    <ArrowDownTrayIcon size={20} color="white" strokeWidth={2.5} />
+                <ChevronLeftIcon size={24} color="white" strokeWidth={2.5} />
                 </TouchableOpacity>
-                <TouchableOpacity 
-                className="bg-white w-12 h-12 rounded-2xl justify-center items-center shadow-lg shadow-black/10"
-                onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
-                >
-                <PlusIcon size={26} color="#F5A9C8" strokeWidth={3} />
-                </TouchableOpacity>
+                <View className="items-center">
+                    <Text className="text-white text-lg font-bold">Health Timeline</Text>
+                    <Text className="text-white/80 text-xs font-medium">{catName}</Text>
+                </View>
+                <View className="flex-row gap-2">
+                    <TouchableOpacity 
+                        className="bg-white/20 w-12 h-12 rounded-2xl justify-center items-center"
+                        onPress={generatePDF}
+                    >
+                        <ArrowDownTrayIcon size={20} color="white" strokeWidth={2.5} />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                    className="bg-white w-12 h-12 rounded-2xl justify-center items-center shadow-lg shadow-black/10"
+                    onPress={() => navigation.navigate('AddHealthEvent', { catId, catName })}
+                    >
+                    <PlusIcon size={26} color="#F5A9C8" strokeWidth={3} />
+                    </TouchableOpacity>
+                </View>
             </View>
+        </View>
+
+        {/* Filters */}
+        <View className="pb-4">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
+                {EVENT_TYPES.map(type => (
+                    <TouchableOpacity 
+                        key={type}
+                        onPress={() => setFilterType(type)}
+                        className={`px-4 py-2 rounded-xl mr-2 ${filterType === type ? 'bg-white shadow-sm' : 'bg-white/20'}`}
+                    >
+                        <Text className={`text-xs font-bold ${filterType === type ? 'text-primary' : 'text-white'}`}>
+                            {type}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+            <Text className="text-white/60 text-[10px] font-medium text-center mt-2">Long press a card to edit</Text>
         </View>
       </View>
 
@@ -312,7 +370,7 @@ export const HealthLogScreen = () => {
              <ActivityIndicator size="large" color="#F5A9C8" className="mt-10" />
         ) : (
             <FlatList
-            data={events}
+            data={filteredEvents}
             keyExtractor={(item: any) => item.id}
             renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 40 }}
@@ -320,9 +378,9 @@ export const HealthLogScreen = () => {
             ListEmptyComponent={
                 <View className="items-center justify-center mt-20 opacity-50 px-10">
                     <ClipboardDocumentCheckIcon size={60} color="#D1D5DB" />
-                    <Text className="text-gray-400 font-bold text-lg mt-4 text-center">No health records yet.</Text>
+                    <Text className="text-gray-400 font-bold text-lg mt-4 text-center">No health records.</Text>
                     <Text className="text-gray-400 text-sm text-center leading-5 mt-1">
-                        Keep track of vaccinations, checkups, and more by tapping the + button.
+                        Try changing filters or tap + to add one.
                     </Text>
                 </View>
             }
