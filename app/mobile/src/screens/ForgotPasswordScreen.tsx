@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, Alert } from 'react-native';
+import { View as RNView, Text as RNText, TextInput as RNTextInput, TouchableOpacity as RNTouchableOpacity, Alert, Image as RNImage } from 'react-native';
 import * as ReactNavigation from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/Button';
@@ -12,6 +11,7 @@ const Text = RNText as any;
 const TextInput = RNTextInput as any;
 const TouchableOpacity = RNTouchableOpacity as any;
 const useNavigation = (ReactNavigation as any).useNavigation;
+const Image = RNImage as any;
 
 export const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
@@ -35,7 +35,7 @@ export const ForgotPasswordScreen = () => {
        </View>
 
       <View className="h-[25%] justify-center items-center">
-        <Text className="text-6xl mb-4">🔐</Text>
+        <Image source={require('../../assets/catly-logo-white.png')} className="w-40 h-40" resizeMode="contain" />
         <Text className="text-white text-2xl font-bold">Recovery</Text>
       </View>
 
