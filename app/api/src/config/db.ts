@@ -5,13 +5,15 @@ import { DATABASE_URL } from './env';
 const PrismaClient = (Prisma as any).PrismaClient;
 
 // Automatically append pgbouncer=true if connecting to Supabase pooler (port 6543)
-// and the flag is missing.
 const getDatabaseUrl = () => {
-  if (DATABASE_URL && DATABASE_URL.includes(':6543') && !DATABASE_URL.includes('pgbouncer=true')) {
-    const separator = DATABASE_URL.includes('?') ? '&' : '?';
-    return `${DATABASE_URL}${separator}pgbouncer=true`;
+  if (!DATABASE_URL) return '';
+  
+  let url = DATABASE_URL;
+  if (url.includes(':6543') && !url.includes('pgbouncer=true')) {
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}pgbouncer=true`;
   }
-  return DATABASE_URL || '';
+  return url;
 };
 
 // Use a global variable to prevent multiple instances in development
@@ -23,6 +25,8 @@ export const prisma = globalForPrisma.prisma || new PrismaClient({
       url: getDatabaseUrl(),
     },
   },
+  // Add logging in dev, error only in prod
+  log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'info', 'warn', 'error'],
 });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
