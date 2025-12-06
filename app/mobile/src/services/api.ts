@@ -5,7 +5,7 @@ import { Platform, Alert } from 'react-native';
 const getBaseUrl = () => {
   // 1. Check for Production Environment Variable (Set in EAS or .env)
   const productionUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (productionUrl && !productionUrl.includes('https://catly.up.railway.app/api')) {
+  if (productionUrl && !productionUrl.includes('https://catly.vercel.app')) {
     return productionUrl;
   }
 
@@ -20,10 +20,10 @@ const getBaseUrl = () => {
   }
 
   // 4. Fallback for Android Emulator
-  if (Platform.OS === 'android') return 'http://10.0.2.2:3000/api';
+  if (Platform.OS === 'android') return 'https://catly.vercel.app';
 
   // 5. Fallback for iOS Simulator
-  return 'http://localhost:3000/api';
+  return 'https://catly.vercel.app';
 };
 
 const BASE_URL = getBaseUrl();

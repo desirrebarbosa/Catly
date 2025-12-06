@@ -90,7 +90,7 @@ export const LoginScreen = () => {
           <View className="w-full mb-5">
             <TextInput
               className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-base text-secondary mb-4"
-              placeholder="Username / Email"
+              placeholder="Email"
               placeholderTextColor="#9FA5C0"
               value={email}
               onChangeText={setEmail}

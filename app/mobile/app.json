@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/catly-logo-pink.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/catly-logo-pink.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F5A9C8"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -20,7 +15,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/catly-logo-pink.png",
+        "foregroundImage": "./assets/catly-logo-white.png",
         "backgroundColor": "#F5A9C8"
       },
       "package": "com.catly.mobile",

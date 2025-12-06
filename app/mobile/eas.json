@@ -15,7 +15,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://catly.up.railway.app/api"
+        "EXPO_PUBLIC_API_URL": "https://catly.vercel.app"
       }
     }
   },
