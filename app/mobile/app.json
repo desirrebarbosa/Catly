@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "6fc3abae-4d40-46fb-87ca-40f5a0070919"
+      }
+    },
+    "android": {
+      "package": "android.catly.com"
+    },
+    "ios": {
+      "bundleIdentifier": "ios.catly.com",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
