@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "9edbd08f-5e33-4df1-9c02-21812621b16b"
+      }
+    },
+    "android": {
+      "package": "com.catly.android"
+    }
+  }
+}
