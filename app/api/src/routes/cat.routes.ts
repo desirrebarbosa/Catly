@@ -15,6 +15,7 @@ router.delete('/:id', catController.deleteCat);
 
 router.get('/:catId/health', catController.getHealthEvents);
 router.post('/:catId/health', catController.addHealthEvent);
+router.put('/health/:eventId', catController.updateHealthEvent); // Added PUT route
 router.delete('/health/:eventId', catController.deleteHealthEvent);
 
 export const catRouter = router;
