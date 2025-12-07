@@ -1,7 +1,7 @@
 
-# Catly Monorepo 🐱
+# Catly 
 
-> **Version:** 1.0.0
+> **Version:** 1.02.0
 > **Status:** Maintenance / Handover
 > **Last Updated:** December 2025
 
@@ -30,7 +30,7 @@ This repository is a **Monorepo** containing both the backend API and the mobile
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 *   Node.js (v18+ recommended)
@@ -68,7 +68,7 @@ npx expo start
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
 Create a `.env` file in **`api/`**:
 
@@ -91,7 +91,7 @@ The mobile app automatically attempts to connect to `localhost:3000`. If running
 
 ---
 
-## 💾 Database Management & Scripts
+## Database Management & Scripts
 
 The `api/package.json` contains useful scripts for data management.
 
@@ -122,7 +122,7 @@ The system includes a "Lazy Archive" mechanism.
 
 ---
 
-## 📱 Key Features & Modules
+## Key Features & Modules
 
 ### 1. Authentication
 *   **Standard:** Email/Password (Bcrypt hashing).
@@ -150,7 +150,7 @@ The system includes a "Lazy Archive" mechanism.
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### API Integration Tests
 Located in `api/src/tests/integration.ts`. This script runs a full CRUD scenario against the running local API.
@@ -165,7 +165,7 @@ Located in `mobile/src/tests/logic.test.ts`. Verified frontend filtering and sor
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 /
@@ -192,7 +192,7 @@ Located in `mobile/src/tests/logic.test.ts`. Verified frontend filtering and sor
 └── docs/                       # Project Documentation (RTM, UML)
 ```
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 1.  **"Network Request Failed" on Mobile:**
     *   Ensure your IP is correctly detected in `mobile/src/services/api.ts`.
