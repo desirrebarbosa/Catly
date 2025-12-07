@@ -11,7 +11,7 @@ This repository is a **Monorepo** containing both the backend API and the mobile
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ### 1. Backend (`/api`)
 *   **Runtime:** Node.js
